@@ -1,56 +1,20 @@
+import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { logger } from 'hono/logger';
 import { cors } from 'hono/cors';
 import { rateLimiter } from 'hono-rate-limiter';
 import { notesRouter } from './routes/notes.js';
 import { createStorage } from './storage/factory.js';
+import { Storage } from './storage/interface.js';
 import fs from 'fs/promises';
+import { Env, PORT, STORAGE_TYPE, validateEnv } from './utils/env.js';
 
-// Environment configuration
-const PORT = process.env.PORT || 3000;
-const STORAGE_TYPE = process.env.STORAGE_TYPE || 'filesystem';
 
-// Validate environment variables
-function validateEnv(): void {
-  const validStorageTypes = ['filesystem', 'redis'];
-
-  if (!validStorageTypes.includes(STORAGE_TYPE)) {
-    throw new Error(
-      `Invalid STORAGE_TYPE: ${STORAGE_TYPE}. Must be one of: ${validStorageTypes.join(', ')}`
-    );
-  }
-
-  if (STORAGE_TYPE === 'redis' && !process.env.REDIS_URL) {
-    throw new Error(
-      'REDIS_URL environment variable is required when STORAGE_TYPE=redis'
-    );
-  }
-
-  const portNum = Number(PORT);
-  if (isNaN(portNum) || portNum < 1 || portNum > 65535) {
-    throw new Error(`Invalid PORT: ${PORT}. Must be a number between 1 and 65535`);
-  }
-
-  // Warn about insecure CORS in production
-  const corsOrigin = process.env.CORS_ORIGIN || '*';
-  if (corsOrigin === '*' && process.env.NODE_ENV === 'production') {
-    console.warn(
-      '⚠️  WARNING: CORS_ORIGIN is set to "*" in production! ' +
-      'This is insecure. Set CORS_ORIGIN to your specific domain.'
-    );
-  }
-  if (corsOrigin === '*') {
-    console.warn(
-      '⚠️  CORS is using wildcard "*". For better security, ' +
-      'set CORS_ORIGIN to your specific domain in production.'
-    );
-  }
-
-  console.log('✅ Environment variables validated');
-}
+// Global storage instance that will be set during initialization
+let globalStorage: Storage | undefined;
 
 // Create Hono app
-const app = new Hono();
+const app = new Hono<{ Bindings: Env }>();
 
 // Middleware
 app.use(logger());
@@ -69,7 +33,8 @@ const limiter = rateLimiter({
     return c.req.header('x-forwarded-for') || 'unknown';
   },
 });
-app.use('/n/*', limiter); // Apply rate limiting only to API routes
+// Apply rate limiting to all /n routes
+app.use('/n*', limiter);
 
 // Body size limiter (max 1MB for all routes)
 const MAX_BODY_SIZE = 1024 * 1024; // 1MB
@@ -89,12 +54,31 @@ app.use('*', async (c, next) => {
   await next();
 });
 
+// Storage middleware - uses globalStorage set during initialization
+app.use('*', async (c, next) => {
+  if (globalStorage) {
+    c.env = { STORAGE: globalStorage };
+  }
+  await next();
+});
+
 // Health check with storage verification
-// Note: In production, storage is added via middleware. In tests, we skip storage checks.
 app.get('/health', async (c) => {
   try {
-    const hasStorage = !!c.env?.STORAGE;
-    const healthData = {
+    const env = c.env;
+    const hasStorage = !!env.STORAGE;
+
+    type HealthResponse = {
+      status: string;
+      storage: {
+        type: string;
+        status: string;
+        error?: string;
+      };
+      timestamp: string;
+    };
+
+    const healthData: HealthResponse = {
       status: 'ok',
       storage: {
         type: STORAGE_TYPE,
@@ -105,7 +89,7 @@ app.get('/health', async (c) => {
 
     // If storage is available in context, test it
     if (hasStorage) {
-      const storage = c.env.STORAGE;
+      const storage = env.STORAGE!;
 
       // Test storage connectivity based on type
       if (STORAGE_TYPE === 'redis') {
@@ -141,8 +125,16 @@ app.get('/health', async (c) => {
 // Mount notes router
 app.route('/n', notesRouter);
 
-// Serve static files (decryption page)
-app.get('/', (c) => c.redirect('/n'));
+// Serve the decryption HTML page at root
+app.get('/', async (c) => {
+  try {
+    // Read and serve the decryption HTML page
+    const html = await fs.readFile('./public/decrypt.html', 'utf-8');
+    return c.html(html);
+  } catch {
+    return c.json({ status: 'error', error: 'Cannot serve decryption HTML page' }, 500);
+  }
+});
 
 // Initialize storage and start server (only in production)
 async function main() {
@@ -169,23 +161,20 @@ async function main() {
       console.log('🧹 Filesystem TTL cleanup scheduled (every hour)');
     }
 
-    // Add storage instance to context (for all routes including /health)
-    app.use('*', async (c, next) => {
-      c.env = { ...c.env, STORAGE: storage };
-      await next();
-    });
-
     console.log(`🚀 FadNote server starting on port ${PORT}`);
     console.log(`💾 Storage: ${STORAGE_TYPE}`);
     console.log('🛡️  Rate limiting: 10 req/min per IP');
 
-    // Start server (Bun only)
-    if (typeof Bun !== 'undefined') {
-      const server = Bun.serve({ fetch: app.fetch, port: Number(PORT) });
-      console.log(`✅ FadNote ready at http://localhost:${PORT}`);
-    } else {
-      console.log('⚠️  Bun not available. Server not started (running in test mode)');
-    }
+    // Set global storage instance for the middleware to use
+    globalStorage = storage;
+
+    // Start server
+    serve({
+      fetch: app.fetch,
+      port: Number(PORT)
+    }, (info) => {
+      console.log(`✅ FadNote ready at http://localhost:${info.port}`);
+    });
 
   } catch (error) {
     console.error('Failed to start server:', error);

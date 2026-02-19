@@ -1,4 +1,4 @@
-FROM oven/bun:1 as base
+FROM node:20-alpine as base
 
 WORKDIR /app
 
@@ -6,17 +6,17 @@ WORKDIR /app
 COPY package.json tsconfig.json ./
 
 # Install dependencies
-RUN bun install
+RUN npm install
 
 # Copy source code
 COPY src ./src
 COPY public ./public
 
 # Build the application
-RUN bun run build
+RUN npm run build
 
 # Production stage
-FROM oven/bun:1-slim
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -31,4 +31,4 @@ RUN mkdir -p /app/data/notes
 
 EXPOSE 3000
 
-CMD ["bun", "run", "start"]
+CMD ["node", "dist/index.js"]
