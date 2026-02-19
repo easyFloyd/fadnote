@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FadNote - Secure Self-Destructing Note</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 600px;
+      width: 100%;
+      padding: 40px;
+    }
+    
+    .logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .logo h1 {
+      font-size: 2rem;
+      color: #333;
+    }
+    
+    .logo span {
+      color: #667eea;
+    }
+    
+    .status {
+      text-align: center;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .status.loading {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+    
+    .status.success {
+      background: #e8f5e9;
+      color: #388e3c;
+    }
+    
+    .status.error {
+      background: #ffebee;
+      color: #d32f2f;
+    }
+    
+    .status.burned {
+      background: #fff3e0;
+      color: #f57c00;
+    }
+    
+    .content-box {
+      background: #f5f5f5;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+    
+    .content-box pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    
+    .warning {
+      background: #fff3e0;
+      border-left: 4px solid #ff9800;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 4px;
+    }
+    
+    .warning strong {
+      color: #e65100;
+    }
+    
+    .copy-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 15px;
+      width: 100%;
+    }
+    
+    .copy-btn:hover {
+      background: #5a6fd6;
+    }
+    
+    .copy-btn:active {
+      transform: scale(0.98);
+    }
+    
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      color: #666;
+      font-size: 14px;
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #e3f2fd;
+      border-top-color: #1976d2;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">
+      <h1>🔥 <span>Fad</span>Note</h1>
+      <p>Secure, self-destructing notes</p>
+    </div>
+    
+    <div id="status" class="status loading">
+      <span class="spinner"></span>
+      Retrieving secure note...
+    </div>
+    
+    <div id="content-area" style="display: none;">
+      <div class="content-box">
+        <pre id="content"></pre>
+      </div>
+      <button class="copy-btn" onclick="copyContent()">📋 Copy to Clipboard</button>
+    </div>
+    
+    <div class="warning" id="warning" style="display: none;">
+      <strong>⚠️ This note has been destroyed</strong><br>
+      It can no longer be viewed. Make sure you've saved any important information.
+    </div>
+    
+    <div class="footer">
+      <p>🔒 End-to-end encrypted • One-time view • No server access to content</p>
+    </div>
+  </div>
+
+  <script>
+    // Parse URL to get note ID and decryption key
+    const url = new URL(window.location.href);
+    const pathParts = url.pathname.split('/');
+    const noteId = pathParts[pathParts.length - 1];
+    const decryptionKey = url.hash.slice(1); // Remove the #
+    
+    const statusEl = document.getElementById('status');
+    const contentAreaEl = document.getElementById('content-area');
+    const contentEl = document.getElementById('content');
+    const warningEl = document.getElementById('warning');
+    
+    async function loadNote() {
+      try {
+        if (!noteId || noteId === 'n') {
+          throw new Error('No note ID provided');
+        }
+        
+        // Fetch the encrypted note from server
+        const response = await fetch(`/n/${noteId}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('Note not found or already viewed');
+          }
+          throw new Error('Failed to retrieve note');
+        }
+        
+        // Get the encrypted blob
+        const encryptedBlob = await response.arrayBuffer();
+        
+        // If no decryption key in URL, show error
+        if (!decryptionKey) {
+          throw new Error('No decryption key provided. Check the full URL including the # part.');
+        }
+        
+        // Decrypt the content
+        const decryptedContent = await decryptNote(encryptedBlob, decryptionKey);
+        
+        // Show the content
+        contentEl.textContent = decryptedContent;
+        contentAreaEl.style.display = 'block';
+        warningEl.style.display = 'block';
+        
+        statusEl.className = 'status success';
+        statusEl.innerHTML = '✅ Note decrypted successfully';
+        
+      } catch (error) {
+        statusEl.className = 'status error';
+        statusEl.innerHTML = `❌ ${error.message}`;
+        
+        if (error.message.includes('already viewed')) {
+          statusEl.className = 'status burned';
+        }
+      }
+    }
+    
+    async function decryptNote(encryptedBlob, key) {
+      // Parse the encrypted data
+      const encrypted = JSON.parse(new TextDecoder().decode(encryptedBlob));
+      
+      const salt = base64ToArrayBuffer(encrypted.salt);
+      const iv = base64ToArrayBuffer(encrypted.iv);
+      const ciphertext = base64ToArrayBuffer(encrypted.ciphertext);
+      
+      // Derive key using PBKDF2
+      const encoder = new TextEncoder();
+      const passwordBuffer = encoder.encode(key);
+      
+      const baseKey = await crypto.subtle.importKey(
+        'raw',
+        passwordBuffer,
+        'PBKDF2',
+        false,
+        ['deriveKey']
+      );
+      
+      const cryptoKey = await crypto.subtle.deriveKey(
+        {
+          name: 'PBKDF2',
+          salt: new Uint8Array(salt),
+          iterations: 100000,
+          hash: 'SHA-256'
+        },
+        baseKey,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['decrypt']
+      );
+      
+      // Decrypt
+      const plaintextBuffer = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: new Uint8Array(iv) },
+        cryptoKey,
+        ciphertext
+      );
+      
+      return new TextDecoder().decode(plaintextBuffer);
+    }
+    
+    function base64ToArrayBuffer(base64) {
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes.buffer;
+    }
+    
+    function copyContent() {
+      const content = contentEl.textContent;
+      navigator.clipboard.writeText(content).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.textContent = '✅ Copied!';
+        setTimeout(() => {
+          btn.textContent = '📋 Copy to Clipboard';
+        }, 2000);
+      });
+    }
+    
+    // Load the note when page loads
+    loadNote();
+  </script>
+</body>
+</html>

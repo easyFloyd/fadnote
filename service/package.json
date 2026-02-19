@@ -1,0 +1,28 @@
+{
+  "name": "fadnote",
+  "version": "1.0.0",
+  "description": "Secure, self-destructing note sharing with OpenClaw and Obsidian integrations",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "start:redis": "docker-compose up -d redis && npm run dev",
+    "test": "vitest"
+  },
+  "keywords": ["secure-notes", "self-destructing", "encryption", "hono"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "hono": "^4.0.0",
+    "ioredis": "^5.3.2",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/uuid": "^9.0.8",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.2.0"
+  }
+}

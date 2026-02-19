@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: fadnote-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  fadnote:
+    build: .
+    container_name: fadnote-app
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - STORAGE_TYPE=redis
+      - REDIS_URL=redis://redis:6379
+      - CORS_ORIGIN=*
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  redis-data:
