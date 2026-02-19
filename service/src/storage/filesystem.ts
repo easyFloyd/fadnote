@@ -33,6 +33,14 @@ export class FilesystemStorage implements Storage {
   
   async get(id: string): Promise<Buffer | null> {
     try {
+      // Check if note has expired
+      const expired = await this.hasExpired(id);
+      if (expired) {
+        // Delete the expired note
+        await this.delete(id);
+        return null;
+      }
+
       const filePath = this.getFilePath(id);
       const data = await fs.readFile(filePath);
       return data;
@@ -83,6 +91,48 @@ export class FilesystemStorage implements Storage {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Check if a stored note has expired
+   */
+  async hasExpired(id: string): Promise<boolean> {
+    const metaPath = `${this.getFilePath(id)}.meta`;
+    try {
+      const metaData = await fs.readFile(metaPath, 'utf-8');
+      const { expires } = JSON.parse(metaData);
+      return Date.now() > expires;
+    } catch {
+      // If no metadata file, assume not expired
+      return false;
+    }
+  }
+
+  /**
+   * Clean up expired notes from filesystem
+   * @returns Number of deleted notes
+   */
+  async cleanupExpired(): Promise<number> {
+    try {
+      const files = await fs.readdir(this.basePath);
+      const noteFiles = files.filter(f => f.endsWith('.enc') && !f.endsWith('.meta'));
+
+      let deletedCount = 0;
+      for (const file of noteFiles) {
+        const id = file.replace('.enc', '');
+        const hasExpired = await this.hasExpired(id);
+
+        if (hasExpired) {
+          await this.delete(id);
+          deletedCount++;
+        }
+      }
+
+      return deletedCount;
+    } catch (error) {
+      console.error('Error during cleanup:', error);
+      return 0;
     }
   }
 }
