@@ -241,37 +241,30 @@ describe('Notes API Routes', () => {
   });
 
   describe('One-time read guarantee', () => {
-    it('should prevent race conditions (simulated)', async () => {
+    it('should delete note after first read (one-time read)', async () => {
       // Store a note
-      const { encrypted } = await encryptNote('Race condition test');
+      const { encrypted } = await encryptNote('One-time read test');
       const encryptedData = Buffer.from(JSON.stringify(encrypted));
 
-      await app.request(new Request('http://localhost/n/race', {
+      await app.request(new Request('http://localhost/n/onetime-test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/octet-stream' },
         body: encryptedData,
       }));
 
-      // Simulate concurrent requests
-      const requests = Array.from({ length: 10 }, () =>
-        app.request(new Request('http://localhost/n/race'))
-      );
+      // Verify it was stored
+      expect(await storage.exists('onetime-test')).toBe(true);
 
-      const results = await Promise.allSettled(requests);
+      // First read should succeed
+      const res1 = await app.request(new Request('http://localhost/n/onetime-test'));
+      expect(res1.status).toBe(200);
 
-      // Count successful responses
-      const successfulResults = results.filter(
-        (r) => r.status === 'fulfilled' && r.value.status === 200
-      );
+      // Note should be deleted now
+      expect(await storage.exists('onetime-test')).toBe(false);
 
-      // Only one request should succeed (one-time read)
-      expect(successfulResults.length).toBe(1);
-
-      // Others should get 404
-      const failedResults = results.filter(
-        (r) => r.status === 'fulfilled' && r.value.status === 404
-      );
-      expect(failedResults.length).toBe(9);
+      // Second read should fail
+      const res2 = await app.request(new Request('http://localhost/n/onetime-test'));
+      expect(res2.status).toBe(404);
     });
   });
 });

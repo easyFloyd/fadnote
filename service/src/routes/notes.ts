@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { v4 as uuidv4 } from 'uuid';
+import fs from 'fs/promises';
 
 /**
  * Notes Routes
@@ -99,13 +100,14 @@ notes.get('/:id', async (c) => {
 
 // Serve the decryption HTML page for browser access
 notes.get('/', async (c) => {
-  // Read and serve the decryption HTML page
-  const html = await Bun.file('./public/decrypt.html').text().catch(() => {
+  try {
+    // Read and serve the decryption HTML page
+    const html = await fs.readFile('./public/decrypt.html', 'utf-8');
+    return c.html(html);
+  } catch {
     // Fallback HTML if file not found
-    return getFallbackHtml();
-  });
-  
-  return c.html(html);
+    return c.html(getFallbackHtml());
+  }
 });
 
 function getFallbackHtml(): string {

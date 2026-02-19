@@ -9,12 +9,14 @@ describe('FilesystemStorage', () => {
   let storage: FilesystemStorage;
 
   beforeEach(async () => {
-    // Clean test directory before each test
+    // Clean and recreate test directory before each test
     try {
       await fs.rm(TEST_DIR, { recursive: true, force: true });
     } catch {
       // Ignore if directory doesn't exist
     }
+    // Create directory
+    await fs.mkdir(TEST_DIR, { recursive: true });
     storage = new FilesystemStorage(TEST_DIR);
   });
 
@@ -103,10 +105,16 @@ describe('FilesystemStorage', () => {
       const data = Buffer.from('Expired');
       await storage.set('expired', data, 1); // 1 second TTL
 
+      // Verify metadata was created
+      const metaPath = path.join(TEST_DIR, 'expired.enc.meta');
+      const metaExists = await fs.access(metaPath).then(() => true).catch(() => false);
+      expect(metaExists).toBe(true); // Ensure metadata file exists
+
       // Wait for expiration
       await new Promise(resolve => setTimeout(resolve, 1100));
 
-      expect(await storage.hasExpired('expired')).toBe(true);
+      const result = await storage.hasExpired('expired');
+      expect(result).toBe(true);
     });
 
     it('should return false for non-existent data', async () => {
@@ -165,11 +173,21 @@ describe('FilesystemStorage', () => {
   });
 
   describe('ID sanitization', () => {
-    it('should prevent directory traversal', async () => {
+    it('should prevent directory traversal by sanitizing ID', async () => {
       const data = Buffer.from('Test');
 
-      // Try to create file outside directory
-      await expect(storage.set('../../../etc/passwd', data)).rejects.toThrow();
+      // Try to use path traversal - should be sanitized
+      await storage.set('../../../etc/passwd', data);
+
+      // Verify file was NOT created outside the test directory
+      const dangerousPath = path.join(TEST_DIR, '../../../etc/passwd.enc');
+      const dangerousExists = await fs.access(dangerousPath).then(() => true).catch(() => false);
+      expect(dangerousExists).toBe(false);
+
+      // Verify file WAS created inside the test directory (sanitized name)
+      const sanitizedPath = path.join(TEST_DIR, 'etcpasswd.enc');
+      const sanitizedExists = await fs.access(sanitizedPath).then(() => true).catch(() => false);
+      expect(sanitizedExists).toBe(true);
     });
 
     it('should handle valid IDs with allowed characters', async () => {
