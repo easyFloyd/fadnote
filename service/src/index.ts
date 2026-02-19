@@ -1,8 +1,10 @@
 import { Hono } from 'hono';
 import { logger } from 'hono/logger';
 import { cors } from 'hono/cors';
+import { rateLimiter } from 'hono-rate-limiter';
 import { notesRouter } from './routes/notes.js';
 import { createStorage } from './storage/factory.js';
+import fs from 'fs/promises';
 
 // Environment configuration
 const PORT = process.env.PORT || 3000;
@@ -29,6 +31,21 @@ function validateEnv(): void {
     throw new Error(`Invalid PORT: ${PORT}. Must be a number between 1 and 65535`);
   }
 
+  // Warn about insecure CORS in production
+  const corsOrigin = process.env.CORS_ORIGIN || '*';
+  if (corsOrigin === '*' && process.env.NODE_ENV === 'production') {
+    console.warn(
+      '⚠️  WARNING: CORS_ORIGIN is set to "*" in production! ' +
+      'This is insecure. Set CORS_ORIGIN to your specific domain.'
+    );
+  }
+  if (corsOrigin === '*') {
+    console.warn(
+      '⚠️  CORS is using wildcard "*". For better security, ' +
+      'set CORS_ORIGIN to your specific domain in production.'
+    );
+  }
+
   console.log('✅ Environment variables validated');
 }
 
@@ -42,12 +59,23 @@ app.use(cors({
   allowMethods: ['GET', 'POST'],
 }));
 
+// Rate limiter: 10 requests per minute per IP for all routes
+const limiter = rateLimiter({
+  windowMs: 60 * 1000, // 1 minute
+  limit: 10, // 10 requests per window
+  standardHeaders: 'draft-6',
+  keyGenerator: (c) => {
+    // Use IP address as key, fallback to 'unknown'
+    return c.req.header('x-forwarded-for') || 'unknown';
+  },
+});
+app.use('/n/*', limiter); // Apply rate limiting only to API routes
+
 // Body size limiter (max 1MB for all routes)
 const MAX_BODY_SIZE = 1024 * 1024; // 1MB
 
 app.use('*', async (c, next) => {
   const method = c.req.method;
-  console.log(`Received ${method} request`);
   // Check Content-Length header for requests with body
   if (method === 'POST' || method === 'PUT' || method === 'PATCH') {
     const contentLength = c.req.header('content-length');
@@ -61,8 +89,55 @@ app.use('*', async (c, next) => {
   await next();
 });
 
-// Health check
-app.get('/health', (c) => c.json({ status: 'ok', storage: STORAGE_TYPE }));
+// Health check with storage verification
+app.get('/health', async (c) => {
+  try {
+    const storage = c.env.STORAGE;
+    const healthData = {
+      status: 'ok',
+      storage: {
+        type: STORAGE_TYPE,
+        status: 'unknown',
+      },
+      timestamp: new Date().toISOString(),
+    };
+
+    if (!storage) {
+      return c.json({ ...healthData, storage: { type: STORAGE_TYPE, status: 'error', error: 'Storage not initialized' } }, 503);
+    }
+
+    // Test storage connectivity based on type
+    if (STORAGE_TYPE === 'redis') {
+      try {
+        // Test Redis by checking if we can execute a PING command
+        await (storage as any).redis.ping();
+        healthData.storage.status = 'connected';
+        return c.json(healthData);
+      } catch (error: any) {
+        healthData.storage.status = 'error';
+        healthData.storage.error = error.message;
+        return c.json(healthData, 503);
+      }
+    }
+
+    if (STORAGE_TYPE === 'filesystem') {
+      try {
+        // Test filesystem by checking if data directory exists
+        await fs.access('./data/notes');
+        healthData.storage.status = 'accessible';
+        return c.json(healthData);
+      } catch (error: any) {
+        healthData.storage.status = 'error';
+        healthData.storage.error = error.message;
+        return c.json(healthData, 503);
+      }
+    }
+
+    return c.json(healthData);
+  } catch (error: any) {
+    return c.json({ status: 'error', error: error.message }, 500);
+  }
+});
 
 // Mount notes router
 app.route('/n', notesRouter);
@@ -109,6 +184,7 @@ async function main() {
     
     console.log(`🚀 FadNote server starting on port ${PORT}`);
     console.log(`💾 Storage: ${STORAGE_TYPE}`);
+    console.log('🛡️  Rate limiting: 10 req/min per IP');
 
     // Start Bun server
     const server = Bun.serve({ fetch: app.fetch, port: Number(PORT) });
