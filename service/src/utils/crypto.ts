@@ -116,10 +116,10 @@ export async function decryptNote(encrypted: EncryptedNote, key: string): Promis
 }
 
 /**
- * Convert ArrayBuffer to base64 string
+ * Convert ArrayBuffer or TypedArray to base64 string
  */
-function arrayBufferToBase64(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
+function arrayBufferToBase64(buffer: ArrayBuffer | Uint8Array): string {
+  const bytes = buffer instanceof ArrayBuffer ? new Uint8Array(buffer) : buffer;
   let binary = '';
   for (let i = 0; i < bytes.byteLength; i++) {
     binary += String.fromCharCode(bytes[i]);
