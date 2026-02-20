@@ -122,10 +122,7 @@ app.get('/health', async (c) => {
   }
 });
 
-// Mount notes router
-app.route('/n', notesRouter);
-
-// Serve the decryption HTML page at root
+// Serve the decryption HTML page at root (for direct access without note ID)
 app.get('/', async (c) => {
   try {
     // Read and serve the decryption HTML page
@@ -135,6 +132,9 @@ app.get('/', async (c) => {
     return c.json({ status: 'error', error: 'Cannot serve decryption HTML page' }, 500);
   }
 });
+
+// Mount notes router
+app.route('/n', notesRouter);
 
 // Initialize storage and start server (only in production)
 async function main() {

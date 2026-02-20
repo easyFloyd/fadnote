@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { v4 as uuidv4 } from 'uuid';
 import { Storage } from '../storage/interface.js';
+import fs from 'fs/promises';
 
 type Env = {
   STORAGE?: Storage;
@@ -10,7 +11,8 @@ type Env = {
  * Notes Routes
  *
  * POST /n - Store an encrypted note (generates ID automatically)
- * GET /n/:id - Retrieve and delete a note (one-time read)
+ * GET /n/:id - Serve the decryption HTML page
+ * GET /n/:id/data - Retrieve and delete encrypted note data (one-time read)
  *
  * The server NEVER sees the decryption key.
  * The key is in the URL fragment (#key) which is never sent to the server.
@@ -64,8 +66,28 @@ notes.post('', async (c) => {
   }
 });
 
-// Retrieve and delete a note (ONE-TIME READ)
+// Serve the decryption HTML page
 notes.get('/:id', async (c) => {
+  try {
+    const id = c.req.param('id');
+
+    // Validate ID format
+    if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
+      return c.json({ error: 'Invalid ID format' }, 400);
+    }
+
+    // Read and serve the decryption HTML page
+    const html = await fs.readFile('./public/decrypt.html', 'utf-8');
+    return c.html(html);
+
+  } catch (error) {
+    console.error('Error serving decryption page:', error);
+    return c.json({ error: 'Failed to serve decryption page' }, 500);
+  }
+});
+
+// Retrieve and delete a note (ONE-TIME READ)
+notes.get('/:id/data', async (c) => {
   try {
     const id = c.req.param('id');
     const env = c.env as Env;
