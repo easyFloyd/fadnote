@@ -189,7 +189,7 @@
         }
         
         // Fetch the encrypted note from server
-        const response = await fetch(`/n/${noteId}`);
+        const response = await fetch(`/n/${noteId}/data`);
         
         if (!response.ok) {
           if (response.status === 404) {
