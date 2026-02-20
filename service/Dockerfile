@@ -2,11 +2,12 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files (including lock file if present)
-COPY package*.json tsconfig.json ./
+# Copy package files
+COPY package.json tsconfig.json ./
 
-# Install all dependencies (including dev dependencies for build)
-RUN npm ci
+# Install dependencies (use npm install if lock file doesn't exist)
+COPY package-lock.json* ./
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 # Copy source code and public files in a single layer
 COPY src/ ./src/
