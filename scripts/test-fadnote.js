@@ -80,7 +80,7 @@ async function postNote() {
     const response = await fetch(`${FADNOTE_URL}/n`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/octet-stream',
         'X-Note-TTL': '3600' // 1 hour
       },
       body: encryptedBlob
