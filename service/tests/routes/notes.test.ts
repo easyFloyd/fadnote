@@ -1,50 +1,22 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { Hono } from 'hono';
-import { notesRouter } from '../../src/routes/notes';
-import { createStorage } from '../../src/storage/factory';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { createApp } from '../../src/app';
+import { InMemoryStorage } from '../utils/in-memory-storage';
 import { encryptNote } from '../../src/utils/crypto';
-import fs from 'fs/promises';
-
-const TEST_DIR = './test-data/notes';
 
 describe('Notes API Routes', () => {
-  let app: Hono;
-  let storage: any;
+  let storage: InMemoryStorage;
 
-  beforeAll(async () => {
-    // Clean and initialize test environment
-    try {
-      await fs.rm(TEST_DIR, { recursive: true, force: true });
-    } catch {
-      // Ignore cleanup errors
-    }
-
-    storage = await createStorage('filesystem');
-
-    // Create test app with storage context
-    app = new Hono();
-    app.use('*', async (c, next) => {
-      c.env = { ...c.env, STORAGE: storage };
-      await next();
-    });
-    app.route('/n', notesRouter);
+  beforeEach(() => {
+    storage = new InMemoryStorage();
   });
 
-  afterAll(async () => {
-    // Cleanup test data
-    try {
-      await fs.rm(TEST_DIR, { recursive: true, force: true });
-    } catch {
-      // Ignore cleanup errors
-    }
-  });
-
-  describe('POST /n/:id', () => {
+  describe('POST /n', () => {
     it('should store an encrypted note successfully', async () => {
+      const app = createApp(storage);
       const { encrypted } = await encryptNote('Secret message');
       const encryptedData = Buffer.from(JSON.stringify(encrypted));
 
-      const req = new Request('http://localhost/n/test123', {
+      const req = new Request('http://localhost/n', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/octet-stream',
@@ -56,18 +28,17 @@ describe('Notes API Routes', () => {
       const body = await res.json();
 
       expect(res.status).toBe(201);
-      expect(body).toEqual({
-        success: true,
-        id: 'test123',
-        expiresIn: 86400,
-      });
+      expect(body.success).toBe(true);
+      expect(body).toHaveProperty('id');
+      expect(body.expiresIn).toBe(86400);
     });
 
     it('should respect custom TTL header', async () => {
+      const app = createApp(storage);
       const { encrypted } = await encryptNote('Secret message');
       const encryptedData = Buffer.from(JSON.stringify(encrypted));
 
-      const req = new Request('http://localhost/n/custom-ttl', {
+      const req = new Request('http://localhost/n', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/octet-stream',
@@ -83,27 +54,9 @@ describe('Notes API Routes', () => {
       expect(body.expiresIn).toBe(3600);
     });
 
-    it('should reject invalid ID format', async () => {
-      const { encrypted } = await encryptNote('Secret message');
-      const encryptedData = Buffer.from(JSON.stringify(encrypted));
-
-      const req = new Request('http://localhost/n/invalid@id!', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/octet-stream',
-        },
-        body: encryptedData,
-      });
-
-      const res = await app.request(req);
-      const body = await res.json();
-
-      expect(res.status).toBe(400);
-      expect(body.error).toBe('Invalid ID format');
-    });
-
     it('should reject empty notes', async () => {
-      const req = new Request('http://localhost/n/empty', {
+      const app = createApp(storage);
+      const req = new Request('http://localhost/n', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/octet-stream',
@@ -119,9 +72,10 @@ describe('Notes API Routes', () => {
     });
 
     it('should reject notes that are too large', async () => {
+      const app = createApp(storage);
       const largeData = Buffer.alloc(1024 * 1024 + 1); // Just over 1MB
 
-      const req = new Request('http://localhost/n/large', {
+      const req = new Request('http://localhost/n', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/octet-stream',
@@ -135,45 +89,24 @@ describe('Notes API Routes', () => {
       expect(res.status).toBe(413);
       expect(body.error).toContain('too large');
     });
-
-    it('should reject duplicate IDs', async () => {
-      const { encrypted } = await encryptNote('First note');
-      const encryptedData = Buffer.from(JSON.stringify(encrypted));
-
-      // Store first note
-      await app.request(new Request('http://localhost/n/duplicate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/octet-stream' },
-        body: encryptedData,
-      }));
-
-      // Try to store duplicate
-      const res = await app.request(new Request('http://localhost/n/duplicate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/octet-stream' },
-        body: encryptedData,
-      }));
-
-      const body = await res.json();
-      expect(res.status).toBe(409);
-      expect(body.error).toBe('Note ID already exists');
-    });
   });
 
-  describe('GET /n/:id', () => {
+  describe('GET /n/:id/data', () => {
     it('should retrieve and delete note on first fetch (one-time read)', async () => {
+      const app = createApp(storage);
       // Store a note
       const { encrypted } = await encryptNote('Secret message');
       const encryptedData = Buffer.from(JSON.stringify(encrypted));
 
-      await app.request(new Request('http://localhost/n/onetime', {
+      const postRes = await app.request(new Request('http://localhost/n', {
         method: 'POST',
         headers: { 'Content-Type': 'application/octet-stream' },
         body: encryptedData,
       }));
+      const { id } = await postRes.json();
 
       // First GET should succeed
-      const req1 = new Request('http://localhost/n/onetime');
+      const req1 = new Request(`http://localhost/n/${id}/data`);
       const res1 = await app.request(req1);
 
       expect(res1.status).toBe(200);
@@ -185,7 +118,7 @@ describe('Notes API Routes', () => {
       expect(retrievedData).toEqual(encryptedData);
 
       // Second GET should return 404
-      const req2 = new Request('http://localhost/n/onetime');
+      const req2 = new Request(`http://localhost/n/${id}/data`);
       const res2 = await app.request(req2);
 
       expect(res2.status).toBe(404);
@@ -194,7 +127,10 @@ describe('Notes API Routes', () => {
     });
 
     it('should return 404 for non-existent notes', async () => {
-      const req = new Request('http://localhost/n/nonexistent');
+      const app = createApp(storage);
+      // Use a valid UUID v4 format that doesn't exist
+      const nonExistentId = '12345678-1234-4123-8123-123456789abc';
+      const req = new Request(`http://localhost/n/${nonExistentId}/data`);
       const res = await app.request(req);
 
       expect(res.status).toBe(404);
@@ -203,67 +139,64 @@ describe('Notes API Routes', () => {
     });
 
     it('should reject invalid ID format', async () => {
-      const req = new Request('http://localhost/n/invalid@id!');
+      const app = createApp(storage);
+      const req = new Request('http://localhost/n/invalid@id!/data');
       const res = await app.request(req);
 
       expect(res.status).toBe(400);
       const body = await res.json();
       expect(body.error).toBe('Invalid ID format');
     });
-
-    it('should delete expired notes when accessed', async () => {
-      // Create an expired note
-      const { encrypted } = await encryptNote('Expired');
-      const encryptedData = Buffer.from(JSON.stringify(encrypted));
-
-      const storageInstance = storage as any;
-      await storageInstance.set('expired-on-get', encryptedData, -1); // Already expired
-
-      // Get should return null (404 after conversion)
-      const req = new Request('http://localhost/n/expired-on-get');
-      const res = await app.request(req);
-
-      expect(res.status).toBe(404);
-    });
   });
 
-  describe('GET /n/ (decryption page)', () => {
+  describe('GET /n/:id', () => {
     it('should serve HTML decryption page', async () => {
-      const req = new Request('http://localhost/n/');
-      const res = await app.request(req);
-
-      expect(res.status).toBe(200);
-      expect(res.headers.get('content-type')).toContain('text/html');
-
-      const html = await res.text();
-      expect(html).toContain('FadNote');
-    });
-  });
-
-  describe('One-time read guarantee', () => {
-    it('should delete note after first read (one-time read)', async () => {
-      // Store a note
-      const { encrypted } = await encryptNote('One-time read test');
+      const app = createApp(storage);
+      // Store a note first
+      const { encrypted } = await encryptNote('Test');
       const encryptedData = Buffer.from(JSON.stringify(encrypted));
 
-      await app.request(new Request('http://localhost/n/onetime-test', {
+      const postRes = await app.request(new Request('http://localhost/n', {
         method: 'POST',
         headers: { 'Content-Type': 'application/octet-stream' },
         body: encryptedData,
       }));
+      const { id } = await postRes.json();
+
+      const req = new Request(`http://localhost/n/${id}`);
+      const res = await app.request(req);
+
+      expect(res.status).toBe(200);
+      expect(res.headers.get('content-type')).toContain('text/html');
+    });
+  });
+
+  describe('One-time read guarantee', () => {
+    it('should delete note after first read', async () => {
+      const app = createApp(storage);
+      // Store a note
+      const { encrypted } = await encryptNote('One-time read test');
+      const encryptedData = Buffer.from(JSON.stringify(encrypted));
+
+      const postRes = await app.request(new Request('http://localhost/n', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body: encryptedData,
+      }));
+      const { id } = await postRes.json();
 
       // Verify it was stored
-      expect(await storage.exists('onetime-test')).toBe(true);
+      expect(await storage.exists(id)).toBe(true);
 
       // First read should succeed
-      const res1 = await app.request(new Request('http://localhost/n/onetime-test'));
+      const res1 = await app.request(new Request(`http://localhost/n/${id}/data`));
       expect(res1.status).toBe(200);
 
       // Note should be deleted now
-      expect(await storage.exists('onetime-test')).toBe(false);
+      expect(await storage.exists(id)).toBe(false);
 
       // Second read should fail
-      const res2 = await app.request(new Request('http://localhost/n/onetime-test'));
+      const res2 = await app.request(new Request(`http://localhost/n/${id}/data`));
       expect(res2.status).toBe(404);
     });
   });

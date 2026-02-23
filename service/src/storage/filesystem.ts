@@ -94,6 +94,11 @@ export class FilesystemStorage implements Storage {
     }
   }
 
+  async ping(): Promise<void> {
+    // Test filesystem by checking if base directory is accessible
+    await fs.access(this.basePath);
+  }
+
   /**
    * Check if a stored note has expired
    */
