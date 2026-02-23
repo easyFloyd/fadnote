@@ -1,19 +1,17 @@
-import { describe, it, expect, beforeAll } from 'vitest';
-import { app } from '../src/index';
-import { createStorage } from '../src/storage/factory';
-import fs from 'fs/promises';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { createApp } from '../src/app';
+import { InMemoryStorage } from './utils/in-memory-storage';
 
 describe('Health Check', () => {
-  let storage: any;
+  let storage: InMemoryStorage;
 
-  beforeAll(async () => {
-    storage = await createStorage('filesystem');
-    // Ensure data directory exists for health check
-    await fs.mkdir('./data/notes', { recursive: true }).catch(() => {});
+  beforeEach(() => {
+    storage = new InMemoryStorage();
   });
 
   describe('GET /health', () => {
     it('should return 200 with health status', async () => {
+      const app = createApp(storage);
       const req = new Request('http://localhost/health');
       const res = await app.request(req);
 
@@ -27,7 +25,8 @@ describe('Health Check', () => {
       expect(body).toHaveProperty('timestamp');
     });
 
-    it('should return 200 even when storage not in context (tests)', async () => {
+    it('should show storage as connected when available', async () => {
+      const app = createApp(storage);
       const req = new Request('http://localhost/health');
       const res = await app.request(req);
 
@@ -35,23 +34,7 @@ describe('Health Check', () => {
 
       const body = await res.json();
       expect(body.status).toBe('ok');
-      expect(body.storage.type).toBe('filesystem');
-      // Status will be 'unknown' since storage is not in context in tests
-      expect(['unknown', 'accessible']).toContain(body.storage.status);
-    });
-
-    it('should show storage as accessible when available', async () => {
-      const req = new Request('http://localhost/health');
-      const res = await app.request(req, {
-        env: { STORAGE: storage }
-      });
-
-      expect(res.status).toBe(200);
-
-      const body = await res.json();
-      expect(body.status).toBe('ok');
-      expect(body.storage.type).toBe('filesystem');
-      expect(body.storage.status).toBe('accessible');
+      expect(body.storage.status).toBe('connected');
     });
   });
 });

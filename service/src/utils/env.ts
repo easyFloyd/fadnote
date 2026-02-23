@@ -1,13 +1,13 @@
-import { Storage } from '../storage/interface';
+import { Storage } from '../storage/interface.js';
 
 // Environment configuration
 export const PORT = process.env.PORT || 3000;
 export const STORAGE_TYPE = (process.env.STORAGE_TYPE || 'filesystem') as 'filesystem' | 'redis';
 
-// Type definitions
-export type Env = {
-    STORAGE?: Storage;
-  };
+// Hono context variables type (used with c.get/c.set)
+export type Variables = {
+  storage: Storage;
+};
   
 
 // Validate environment variables

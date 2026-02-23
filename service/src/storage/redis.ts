@@ -37,7 +37,11 @@ export class RedisStorage implements Storage {
     const exists = await this.redis.exists(id);
     return exists === 1;
   }
-  
+
+  async ping(): Promise<void> {
+    await this.redis.ping();
+  }
+
   async close(): Promise<void> {
     await this.redis.quit();
   }
