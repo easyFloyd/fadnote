@@ -14,4 +14,24 @@ app.get('/', async (c) => {
   }
 });
 
+// Serve the FAQ page
+app.get('/faq', async (c) => {
+  try {
+    const html = await fs.readFile('./public/faq.html', 'utf-8');
+    return c.html(html);
+  } catch {
+    return c.json({ status: 'error', error: 'Cannot serve FAQ page' }, 500);
+  }
+});
+
+// Also serve faq.html directly for convenience
+app.get('/faq.html', async (c) => {
+  try {
+    const html = await fs.readFile('./public/faq.html', 'utf-8');
+    return c.html(html);
+  } catch {
+    return c.json({ status: 'error', error: 'Cannot serve FAQ page' }, 500);
+  }
+});
+
 export const rootRoute = app;

@@ -132,6 +132,41 @@
       color: var(--brand-blue);
     }
 
+    /* Navigation */
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin-left: auto;
+      margin-right: 1rem;
+    }
+
+    .nav-link {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .nav-link:hover { color: var(--brand-blue); }
+
+    .nav-link.active { color: var(--brand-blue); }
+
+    /* GitHub Link */
+    .github-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      color: var(--text-secondary);
+      transition: color 0.2s ease;
+      margin-right: 0.5rem;
+    }
+
+    .github-link:hover { color: var(--text-primary); }
+
     /* Theme Toggle */
     .theme-toggle {
       background: var(--bg-tertiary);
@@ -182,8 +217,7 @@
     /* Hero Section */
     .hero {
       text-align: center;
-      max-width: 640px;
-      margin: 0 auto;
+      width: 100%;
       padding: 1.5rem;
       background: linear-gradient(135deg, var(--brand-blue-light) 0%, var(--brand-blue-dark) 100%);
       border-radius: 16px;
@@ -471,7 +505,7 @@
     }
 
     .integration-icon.clawhub {
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      background: linear-gradient(135deg, var(--brand-blue-light) 0%, var(--brand-blue-dark) 100%);
     }
 
     .integration-icon.obsidian {
@@ -564,6 +598,15 @@
         gap: 0.5rem;
       }
 
+      .nav {
+        gap: 0.75rem;
+        margin-right: 0.5rem;
+      }
+
+      .nav-link {
+        font-size: 0.8125rem;
+      }
+
       .note-header {
         flex-direction: column;
         align-items: flex-start;
@@ -652,6 +695,15 @@
         <img src="/images/apple-touch-icon.png" alt="FadNote" class="brand-logo">
         <span class="brand-text"><span>Fad</span>Note</span>
       </a>
+      <nav class="nav">
+        <a href="/" class="nav-link active">Home</a>
+        <a href="/faq.html" class="nav-link">FAQ</a>
+      </nav>
+      <a href="https://github.com/easyFloyd/fadnote" target="_blank" rel="noopener" class="github-link" aria-label="GitHub" title="View on GitHub">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+      </a>
       <div class="theme-toggle" id="themeToggle" role="group" aria-label="Theme toggle">
         <button class="theme-btn active" data-theme="light" aria-label="Light mode" title="Light mode">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -674,17 +726,19 @@
     <section class="hero">
       <h2 class="hero-title">
         <span>🔒</span>
-        Burn after reading. Seriously.
+        Share once, then fade away.
       </h2>
       <p class="hero-description">
-        FadNote is a zero-knowledge note sharing service. Your secrets are encrypted in your browser
-        before they ever reach our servers. We can't read them, we can't recover them, and after one view—they're gone forever.
+        <b>FadNote</b> is an open-source, zero-knowledge note sharing service that works where you do—<b>OpenClaw, Obsidian, or CLI</b>.
+        Your secrets are encrypted client-side before they ever reach our servers.
+        We can't read them, we can't recover them, and after one view—<b>they're faded forever.</b>
       </p>
       <div class="hero-features">
         <span>🔐 Client-side encryption</span>
         <span>🔥 One-time read</span>
         <span>🕵️ Zero knowledge</span>
         <span>⏰ Auto-expire</span>
+        <span>🔓 Open-source</span>
       </div>
     </section>
 
@@ -742,26 +796,96 @@
     <div class="integrations">
       <a href="https://github.com/openclaw-org/clawhub" target="_blank" rel="noopener" class="integration-card">
         <div class="integration-icon clawhub">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="4 17 10 11 4 5"></polyline>
-            <line x1="12" y1="19" x2="20" y2="19"></line>
+          <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="lobster-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ff4d4d"/>
+                <stop offset="100%" stop-color="#991b1b"/>
+              </linearGradient>
+            </defs>
+            <!-- Body -->
+            <path d="M60 10 C30 10 15 35 15 55 C15 75 30 95 45 100 L45 110 L55 110 L55 100 C55 100 60 102 65 100 L65 110 L75 110 L75 100 C90 95 105 75 105 55 C105 35 90 10 60 10Z" fill="url(#lobster-gradient)"/>
+            <!-- Left Claw -->
+            <path d="M20 45 C5 40 0 50 5 60 C10 70 20 65 25 55 C28 48 25 45 20 45Z" fill="url(#lobster-gradient)"/>
+            <!-- Right Claw -->
+            <path d="M100 45 C115 40 120 50 115 60 C110 70 100 65 95 55 C92 48 95 45 100 45Z" fill="url(#lobster-gradient)"/>
+            <!-- Antenna -->
+            <path d="M45 15 Q35 5 30 8" stroke="#ff4d4d" stroke-width="3" stroke-linecap="round"/>
+            <path d="M75 15 Q85 5 90 8" stroke="#ff4d4d" stroke-width="3" stroke-linecap="round"/>
+            <!-- Eyes -->
+            <circle cx="45" cy="35" r="6" fill="#050810"/>
+            <circle cx="75" cy="35" r="6" fill="#050810"/>
+            <circle cx="46" cy="34" r="2.5" fill="#00e5cc"/>
+            <circle cx="76" cy="34" r="2.5" fill="#00e5cc"/>
           </svg>
         </div>
         <div class="integration-content">
           <div class="integration-title">OpenClaw Skill</div>
-          <div class="integration-desc">Create secure notes directly from OpenClaw. Just say "Secure this API key" and it's done.</div>
+          <div class="integration-desc">Create shareable secure notes directly from OpenClaw. Just say "Secure this API key" and it's done.</div>
         </div>
       </a>
 
       <div class="integration-card" style="cursor: default;">
         <div class="integration-icon obsidian">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          <svg id="custom-logo" width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" style="height:100%;width:100%;">
+            <defs>
+              <radialGradient id="b" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(-48 -185 123 -32 179 429.7)">
+                <stop stop-color="#fff" stop-opacity=".4"/>
+                <stop offset="1" stop-opacity=".1"/>
+              </radialGradient>
+              <radialGradient id="c" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(41 -310 229 30 341.6 351.3)">
+                <stop stop-color="#fff" stop-opacity=".6"/>
+                <stop offset="1" stop-color="#fff" stop-opacity=".1"/>
+              </radialGradient>
+              <radialGradient id="d" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(57 -261 178 39 190.5 296.3)">
+                <stop stop-color="#fff" stop-opacity=".8"/>
+                <stop offset="1" stop-color="#fff" stop-opacity=".4"/>
+              </radialGradient>
+              <radialGradient id="e" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(-79 -133 153 -90 321.4 464.2)">
+                <stop stop-color="#fff" stop-opacity=".3"/>
+                <stop offset="1" stop-opacity=".3"/>
+              </radialGradient>
+              <radialGradient id="f" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(-29 136 -92 -20 300.7 149.9)">
+                <stop stop-color="#fff" stop-opacity="0"/>
+                <stop offset="1" stop-color="#fff" stop-opacity=".2"/>
+              </radialGradient>
+              <radialGradient id="g" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(72 73 -155 153 137.8 225.2)">
+                <stop stop-color="#fff" stop-opacity=".2"/>
+                <stop offset="1" stop-color="#fff" stop-opacity=".4"/>
+              </radialGradient>
+              <radialGradient id="h" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(20 118 -251 43 215.1 273.7)">
+                <stop stop-color="#fff" stop-opacity=".1"/>
+                <stop offset="1" stop-color="#fff" stop-opacity=".3"/>
+              </radialGradient>
+              <radialGradient id="i" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(-162 -85 268 -510 374.4 371.7)">
+                <stop stop-color="#fff" stop-opacity=".2"/>
+                <stop offset=".5" stop-color="#fff" stop-opacity=".2"/>
+                <stop offset="1" stop-color="#fff" stop-opacity=".3"/>
+              </radialGradient>
+              <filter id="a" x="80.1" y="37" width="351.1" height="443.2" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+                <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+                <feGaussianBlur stdDeviation="6.5" result="effect1_foregroundBlur_744_9191"/>
+              </filter>
+            </defs>
+            <rect id="logo-bg" fill="#262626" width="512" height="512" rx="100"/>
+            <g filter="url(#a)">
+              <path d="M359.2 437.5c-2.6 19-21.3 33.9-40 28.7-26.5-7.2-57.2-18.6-84.8-20.7l-42.4-3.2a28 28 0 0 1-18-8.3l-73-74.8a27.7 27.7 0 0 1-5.4-30.7s45-98.6 46.8-103.7c1.6-5.1 7.8-49.9 11.4-73.9a28 28 0 0 1 9-16.5L249 57.2a28 28 0 0 1 40.6 3.4l72.6 91.6a29.5 29.5 0 0 1 6.2 18.3c0 17.3 1.5 53 11.2 76a301.3 301.3 0 0 0 35.6 58.2 14 14 0 0 1 1 15.6c-6.3 10.7-18.9 31.3-36.6 57.6a142.2 142.2 0 0 0-20.5 59.6Z" fill="#000" fill-opacity=".3"/>
+            </g>
+            <path id="arrow" d="M359.9 434.3c-2.6 19.1-21.3 34-40 28.9-26.4-7.3-57-18.7-84.7-20.8l-42.3-3.2a27.9 27.9 0 0 1-18-8.4l-73-75a27.9 27.9 0 0 1-5.4-31s45.1-99 46.8-104.2c1.7-5.1 7.8-50 11.4-74.2a28 28 0 0 1 9-16.6l86.2-77.5a28 28 0 0 1 40.6 3.5l72.5 92a29.7 29.7 0 0 1 6.2 18.3c0 17.4 1.5 53.2 11.1 76.3a303 303 0 0 0 35.6 58.5 14 14 0 0 1 1.1 15.7c-6.4 10.8-18.9 31.4-36.7 57.9a143.3 143.3 0 0 0-20.4 59.8Z" fill="#6C31E3"/>
+            <path d="M182.7 436.4c33.9-68.7 33-118 18.5-153-13.2-32.4-37.9-52.8-57.3-65.5-.4 1.9-1 3.7-1.8 5.4L96.5 324.8a27.9 27.9 0 0 0 5.5 31l72.9 75c2.3 2.3 5 4.2 7.8 5.6Z" fill="url(#b)"/>
+            <path d="M274.9 297c9.1.9 18 2.9 26.8 6.1 27.8 10.4 53.1 33.8 74 78.9 1.5-2.6 3-5.1 4.6-7.5a1222 1222 0 0 0 36.7-57.9 14 14 0 0 0-1-15.7 303 303 0 0 1-35.7-58.5c-9.6-23-11-58.9-11.1-76.3 0-6.6-2.1-13.1-6.2-18.3l-72.5-92-1.2-1.5c5.3 17.5 5 31.5 1.7 44.2-3 11.8-8.6 22.5-14.5 33.8-2 3.8-4 7.7-5.9 11.7a140 140 0 0 0-15.8 58c-1 24.2 3.9 54.5 20 95Z" fill="url(#c)"/>
+            <path d="M274.8 297c-16.1-40.5-21-70.8-20-95 1-24 8-42 15.8-58l6-11.7c5.8-11.3 11.3-22 14.4-33.8a78.5 78.5 0 0 0-1.7-44.2 28 28 0 0 0-39.4-2l-86.2 77.5a28 28 0 0 0-9 16.6L144.2 216c0 .7-.2 1.3-.3 2 19.4 12.6 44 33 57.3 65.3 2.6 6.4 4.8 13.1 6.4 20.4a200 200 0 0 1 67.2-6.8Z" fill="url(#d)"/>
+            <path d="M320 463.2c18.6 5.1 37.3-9.8 39.9-29a153 153 0 0 1 15.9-52.2c-21-45.1-46.3-68.5-74-78.9-29.5-11-61.6-7.3-94.2.6 7.3 33.1 3 76.4-24.8 132.7 3.1 1.6 6.6 2.5 10.1 2.8l43.9 3.3c23.8 1.7 59.3 14 83.2 20.7Z" fill="url(#e)"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M255 200.5c-1.1 24 1.9 51.4 18 91.8l-5-.5c-14.5-42.1-17.7-63.7-16.6-88 1-24.3 8.9-43 16.7-59 2-4 6.6-11.5 8.6-15.3 5.8-11.3 9.7-17.2 13-27.5 4.8-14.4 3.8-21.2 3.2-28 3.7 24.5-10.4 45.8-21 67.5a145 145 0 0 0-17 59Z" fill="url(#f)"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M206 285.1c2 4.4 3.7 8 4.9 13.5l-4.3 1c-1.7-6.4-3-11-5.5-16.5-14.6-34.3-38-52-57-65 23 12.4 46.7 31.9 61.9 67Z" fill="url(#g)"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M211.1 303c8 37.5-1 85.2-27.5 131.6 22.2-46 33-90.1 24-131l3.5-.7Z" fill="url(#h)"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M302.7 299.5c43.5 16.3 60.3 52 72.8 81.9-15.5-31.2-37-65.7-74.4-78.5-28.4-9.8-52.4-8.6-93.5.7l-.9-4c43.6-10 66.4-11.2 96 0Z" fill="url(#i)"/>
           </svg>
         </div>
         <div class="integration-content">
           <div class="integration-title">Obsidian Plugin</div>
-          <div class="integration-desc">Share notes directly from your Obsidian vault with one click.</div>
+          <div class="integration-desc">Securely share notes directly from your Obsidian vault with one click.</div>
           <span class="integration-coming-soon">Coming Soon</span>
         </div>
       </div>
@@ -770,11 +894,9 @@
     <!-- Footer -->
     <footer class="footer">
       <p class="footer-text">
-        End-to-end encrypted
+        FadNote - Share once, then fade away
         <span class="footer-dot"></span>
-        One-time view
-        <span class="footer-dot"></span>
-        No server access to content
+        Created by easyFloyd
       </p>
     </footer>
   </main>
