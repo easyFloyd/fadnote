@@ -256,6 +256,6 @@ A: Maybe. Open an issue. Keep it simple though — this is a hobby project I bui
 
 ---
 
-Made by [@easyFloyd](https://github.com/easyFloyd)
+Made with ☕ and AI by [@easyFloyd](https://github.com/easyFloyd)
 
 *"Some notes are meant to fade"*
