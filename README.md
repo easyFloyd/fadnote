@@ -1,66 +1,149 @@
 # 🗒️ FadNote
 
-> Burn after reading. Seriously.
+> Share once, then fade away.
 
 [![Live](https://img.shields.io/badge/live-fadnote.com-blue)](https://fadnote.com)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-**Free, secure, self-destructing notes for developers who actually care about privacy.**
+**FadNote** is an open-source, zero-knowledge note sharing service that works where you do:
+- **OpenClaw** — AI-powered workflow automation
+- **Obsidian** — Your knowledge base (plugin coming soon)
+- **CLI** — Terminal warriors welcome
 
-No signup. No tracking. No "we value your privacy" banners. Just encrypted blobs that vanish after one view.
+Your secrets are encrypted client-side before they ever reach our servers. We can't read them, we can't recover them, and after one view **they're faded forever.**
+
+---
+
+## 📚 Table of Contents
+
+- [What is this?](#-what-is-this)
+- [How it works](#-how-it-works)
+- [Quick Start](#-quick-start)
+- [Self-Hosting](#-self-hosting)
+- [Security](#-security-notes)
+- [Development](#-development)
+- [FAQ](#-faq)
 
 ---
 
 ## 🤔 What is this?
 
-FadNote is a zero-knowledge note sharing service. Think of it as Privnote's introverted cousin who studied cryptography.
+FadNote is a zero-knowledge note sharing service that turns your secrets into secure, shareable links. Send them to recipients via any channel — email, Slack, Telegram, whatever. Once they view it, the note fades away forever.
 
 - 🔐 **Client-side encryption** — Your secret never touches our servers naked
 - 🔥 **One-time read** — First view deletes the note forever
-- ⏰ **Auto-expire** — Notes vaporize after 24 hours (or your custom TTL)
+- ⏰ **Auto-expire** — Notes vaporize after your chosen TTL (default: 1 hour)
 - 🕵️ **Zero knowledge** — We can't read your notes even if we wanted to
+- 🔓 **Open-source** — Audit the code, self-host if paranoid
 
 Live instance: **https://fadnote.com**
 
-*(Free for everyone. Because privacy shouldn't cost money.)*
+*(Free for everyone. Self-host if you prefer.)*
 
 ---
 
 ## 🧠 How it works
 
-```
-You type secret → Browser encrypts it (AES-256-GCM) → We store gibberish
-                                                             ↓
-Recipient opens URL ← Browser decrypts ← We delete the gibberish
-```
+FadNote uses **true zero-knowledge architecture**.
 
-The decryption key lives in the URL fragment (`#key`) — browsers never send it to the server. We literally *cannot* decrypt your notes.
+### On Your Device
 
-**Tech nerds:** Check `service/src/utils/crypto.ts` for the gory details. PBKDF2, 100k iterations, the whole shebang.
+1. **Generate** a random 256-bit encryption key
+2. **Encrypt** your secret using AES-256-GCM + PBKDF2 (100k iterations)
+3. **Send** only the encrypted blob to the server
+
+### On FadNote Server
+
+4. **Store** the encrypted blob (we can't read it — no key)
+5. **Return** a unique ID for the blob
+
+### Back On Your Device
+
+6. **Build** the shareable link: `https://fadnote.com/n/{id}#{key}`
+7. **Share** via email, Telegram, Slack, or anywhere
+
+**The decryption key lives in the URL fragment (after `#`)** — browsers never send this to servers. Only the recipient with the full link can decrypt the note.
+
+### Cryptography Details
+
+| Aspect | Implementation |
+|--------|---------------|
+| Algorithm | AES-256-GCM |
+| Key Derivation | PBKDF2 with 100,000 iterations |
+| Hash | SHA-256 |
+| IV | 96-bit random per encryption |
+| Salt | 128-bit random per encryption |
 
 ---
 
 ## 🚀 Quick Start
 
-### Option 1: CLI Script (Easiest)
+### Option 1: OpenClaw Skill (Recommended)
+
+Install from [ClawHub](https://clawhub.dev) for seamless AI-powered note creation:
 
 ```bash
-# Using the included test script
-cd scripts
-echo "My secret API key" | node test-fadnote.js
-
-# Or from clipboard
-pbpaste | node test-fadnote.js      # macOS
-xclip -o | node test-fadnote.js     # Linux
+claw install fadnote
 ```
 
-Outputs a shareable link. Copy, paste, done.
+Then just tell OpenClaw:
 
-### Option 2: Direct API
+```
+"Secure this API key: sk-live-12345"
+"Create a secure link for these credentials"
+"FadNote this password for the server"
+```
+
+The skill automatically encrypts and returns a shareable link.
+
+📖 [Full Skill Documentation](openclaw-skill/SKILL.md)
+
+---
+
+### Option 2: Obsidian Plugin
+
+**Coming soon** — Share notes directly from your knowledge base. Star the repo to get notified.
+
+---
+
+### Option 3: CLI
+
+Use the standalone script (Node.js 18+, no dependencies):
 
 ```bash
-# Encrypt something (client-side, obviously)
-# Then POST the encrypted blob
+# Clone and navigate
+ git clone https://github.com/easyFloyd/fadnote.git
+ cd fadnote/scripts
+
+# Pipe text directly
+echo "My secret API key" | node test-fadnote.js
+
+# Or pass as argument
+node test-fadnote.js "password for the server"
+
+# From a file
+cat credentials.txt | node test-fadnote.js
+
+# From clipboard (macOS)
+pbpaste | node test-fadnote.js
+
+# From clipboard (Linux)
+xclip -o | node test-fadnote.js
+```
+
+Outputs a single shareable link. Copy, paste, done.
+
+---
+
+### Option 4: Direct API
+
+Roll your own client:
+
+```bash
+# 1. Encrypt your content (client-side!)
+# See service/src/utils/crypto.ts for the reference implementation
+
+# 2. POST the encrypted blob
 curl -X POST https://fadnote.com/n \
   -H "Content-Type: application/octet-stream" \
   -H "X-Note-TTL: 3600" \
@@ -70,11 +153,7 @@ curl -X POST https://fadnote.com/n \
 # Share: https://fadnote.com/n/abc123#YOUR_DECRYPTION_KEY
 ```
 
-### Option 3: Open in Browser
-
-1. Visit `https://fadnote.com/n/YOUR_ID`
-2. If the note exists, it decrypts in your browser
-3. Refresh = gone forever
+The encryption uses standard Web Crypto API — you can implement it in any language.
 
 ---
 
@@ -90,12 +169,12 @@ cd fadnote/service
 cp .env.example .env
 # Edit .env: STORAGE_TYPE=filesystem (or redis)
 
-docker-compose up
+docker-compose up -d
 ```
 
 Runs on http://localhost:3000
 
-### Manual (Node/Bun)
+### Manual (Node)
 
 ```bash
 cd service
@@ -104,7 +183,7 @@ npm run build
 STORAGE_TYPE=filesystem npm start
 ```
 
-**Requirements:** Node 18+ or Bun. That's it.
+**Requirements:** Node 18+. That's it.
 
 ### Storage Options
 
@@ -120,13 +199,20 @@ Set `STORAGE_TYPE` in your `.env` file.
 ## 🔒 Security Notes
 
 - ✅ AES-256-GCM encryption (client-side)
-- ✅ Keys never leave the browser
+- ✅ Keys never leave the browser/CLI
 - ✅ One-time read enforced server-side
 - ✅ Rate limited (10 req/min per IP)
 - ✅ Max note size: 1MB
+- ✅ No logs of note content (server can't read it anyway)
 - ❌ We cannot recover lost notes (seriously, we don't have the keys)
 
 **Threat model:** Protects against server compromise, nosy admins, and warrant requests. Does *not* protect against screenshotting recipients or XSS in the recipient's browser. Use with humans you trust.
+
+**Verifying the encryption:**
+```bash
+# Check the decrypt page source — decryption happens entirely in your browser
+curl -s https://fadnote.com/decrypt.html | grep -A5 "decryptNote"
+```
 
 ---
 
@@ -139,7 +225,7 @@ npm run dev        # Hot reload on :3000
 npm test           # Vitest suite
 ```
 
-See `service/` directory for the full backend code. It's surprisingly small.
+See `service/` directory for the full backend code.
 
 ---
 
@@ -152,19 +238,24 @@ MIT. Do whatever. Just don't use it for evil.
 ## 🙋 FAQ
 
 **Q: Is this really free?**
-A: Yes. The hosted version is my gift to the privacy-conscious. Self-host if you want.
+A: Yes. The hosted version is my gift to the privacy-conscious. Self-host if you want. If it saves you time, consider [buying me a coffee](https://fadnote.com).
 
 **Q: Can you recover a note I accidentally deleted?**
 A: No. We don't have the decryption key. We don't even have the encrypted blob after first read.
 
 **Q: How do I know you're not lying about encryption?**
-A: Read the code. `service/src/utils/crypto.ts`. It's ~100 lines. Auditable in 5 minutes.
+A: [Read the code](service/src/utils/crypto.ts). It's 140 lines. The decrypt page is pure client-side JavaScript — no network requests during decryption.
+
+**Q: What if someone intercepts the link?**
+A: They can read the note (once). Share links through trusted channels — FadNote protects against server compromise, not person-in-the-middle during sharing.
 
 **Q: Will you add feature X?**
-A: Maybe. Open an issue. Keep it simple though — this is a hobby project, not a startup.
+A: Maybe. Open an issue. Keep it simple though — this is a hobby project I built over weekends, not a startup.
+
+**Full FAQ:** https://fadnote.com/faq.html
 
 ---
 
-Made with ☕ and 😤 by [@easyFloyd](https://github.com/easyFloyd)
+Made by [@easyFloyd](https://github.com/easyFloyd)
 
-*"The right to privacy is the right to be left alone."* — Some smart person, probably
+*"Some notes are meant to fade"*
