@@ -1,6 +1,21 @@
+---
+name: fadnote
+version: 1.0.0
+description: Create secure shareable self-destructing notes
+license: MIT
+metadata:
+  openclaw:
+    emoji: 🔥
+    requires:
+      bins: ["node"]
+      env: ["FADNOTE_URL"]
+    primaryEnv: "FADNOTE_URL"
+    homepage: https://github.com/easyFloyd/fadnote
+---
+
 # FadNote Skill
 
-**Secure self-destructing notes for OpenClaw**
+**Secure self-destructing shareable notes for OpenClaw**
 
 Create encrypted, one-time-read notes directly from OpenClaw. The server never sees your plaintext.
 
@@ -14,6 +29,7 @@ Create encrypted, one-time-read notes directly from OpenClaw. The server never s
 | **Version** | 1.0.0 |
 | **Author** | easyFloyd |
 | **License** | MIT |
+| **Open Source** | ✅ Yes — https://github.com/easyFloyd/fadnote |
 | **Runtime** | Node.js 18+ |
 
 ---
@@ -51,7 +67,7 @@ claw: I'll create a secure, self-destructing note for that.
 
       🔗 https://fadnote-dc.drofty.com/n/abc123# decryption-key-here
 
-      This link will self-destruct after first view.
+      Share it with the recipient via any channel and this link will self-destruct after first view.
 ```
 
 ### CLI Usage
@@ -70,12 +86,44 @@ pbpaste | fadnote  # macOS clipboard
 
 ---
 
+## Triggers
+
+**I (OpenClaw) will automatically use the FadNote skill when you say any of:**
+
+- "Secure this [content]"
+- "FadNote this [content]"  
+- "Create a secure link for [content]"
+- "Share this securely: [content]"
+- "One-time note: [content]"
+- "Encrypt and share [content]"
+
+**With email delivery (if email skill is present):**
+- "Secure this and email to [recipient]: [content]"
+- "FadNote this to [email]"
+- "Send secure note to [email]"
+
+**Examples:**
+```
+- Secure this API key: sk-live-12345
+
+- FadNote this password for the server
+
+- Create a secure link for these credentials
+
+- Share this securely: my private SSH key
+
+- One-time note: the meeting location
+```
+
+---
+
 ## Security
 
 - **Client-side encryption** — AES-256-GCM with PBKDF2 (100k iterations)
 - **Zero knowledge** — Server receives only encrypted blobs
 - **One-time read** — Note deleted immediately after first fetch
 - **Auto-expire** — Default 1 hour TTL
+- **🔓 Open Source** — Server code is publicly auditable at https://github.com/easyFloyd/fadnote
 
 The decryption key is embedded in the URL fragment (`#key`) and never sent to the server.
 
@@ -95,6 +143,18 @@ openclaw-skill/
 ## Requirements
 
 - Node.js 18+ (no external dependencies)
+
+---
+
+## Troubleshooting
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `FADNOTE_URL not set` | Environment variable missing | `export FADNOTE_URL=https://fadnote-dc.drofty.com` |
+| `Empty note` | No input provided | Pipe text into fadnote: `echo "secret" \| fadnote` |
+| `404 Not Found` | Server endpoint wrong | Check `FADNOTE_URL` points to a running FadNote instance |
+| `Connection refused` | Server unreachable | Verify server is up or use the live service |
+| `Crypto not available` | Node.js < 18 | Upgrade to Node.js 18+ |
 
 ---
 

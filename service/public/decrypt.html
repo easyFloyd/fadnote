@@ -4,241 +4,763 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FadNote - Secure Self-Destructing Note</title>
+
+  <link rel="icon" type="image/png" href="/images/favicon-96x96.png" sizes="96x96" />
+  <link rel="shortcut icon" href="/images/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-title" content="FadNote" />
+  <link rel="manifest" href="/images/site.webmanifest" />
+
   <style>
+    :root {
+      /* Monochrome palette */
+      --gray-50: #fafafa;
+      --gray-100: #f5f5f5;
+      --gray-200: #e5e5e5;
+      --gray-300: #d4d4d4;
+      --gray-400: #a3a3a3;
+      --gray-500: #737373;
+      --gray-600: #525252;
+      --gray-700: #404040;
+      --gray-800: #262626;
+      --gray-900: #171717;
+
+      /* Brand blue from gradient */
+      --brand-blue: #667eea;
+      --brand-blue-dark: #5a6fd6;
+      --brand-blue-light: #7b8eec;
+
+      /* Semantic colors */
+      --bg-primary: var(--gray-50);
+      --bg-secondary: white;
+      --bg-tertiary: var(--gray-100);
+      --text-primary: var(--gray-900);
+      --text-secondary: var(--gray-600);
+      --text-tertiary: var(--gray-500);
+      --border-color: var(--gray-200);
+      --shadow-color: rgba(0, 0, 0, 0.08);
+      --success-bg: #ecfdf5;
+      --success-text: #059669;
+      --error-bg: #fef2f2;
+      --error-text: #dc2626;
+      --warning-bg: #fff7ed;
+      --warning-text: #ea580c;
+      --info-bg: #eff6ff;
+      --info-text: #2563eb;
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: var(--gray-900);
+      --bg-secondary: var(--gray-800);
+      --bg-tertiary: var(--gray-700);
+      --text-primary: var(--gray-50);
+      --text-secondary: var(--gray-400);
+      --text-tertiary: var(--gray-500);
+      --border-color: var(--gray-700);
+      --shadow-color: rgba(0, 0, 0, 0.3);
+      --success-bg: #064e3b;
+      --success-text: #34d399;
+      --error-bg: #7f1d1d;
+      --error-text: #fca5a5;
+      --warning-bg: #7c2d12;
+      --warning-text: #fdba74;
+      --info-bg: #1e3a8a;
+      --info-text: #93c5fd;
+    }
+
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    
+
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
       min-height: 100vh;
+      line-height: 1.6;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    /* Header */
+    .header {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      flex-shrink: 0;
+      object-fit: cover;
+    }
+
+    .brand-text {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .brand-text span {
+      color: var(--brand-blue);
+    }
+
+    /* Theme Toggle */
+    .theme-toggle {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 50px;
+      padding: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--brand-blue);
+    }
+
+    .theme-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      color: var(--text-tertiary);
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      transition: all 0.2s ease;
     }
-    
-    .container {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+
+    .theme-btn.active {
+      background: var(--bg-secondary);
+      color: var(--brand-blue);
+      box-shadow: 0 2px 4px var(--shadow-color);
+    }
+
+    /* Main Layout */
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
       max-width: 600px;
+      margin: 0 auto;
+      padding: 1rem 0;
+    }
+
+    .hero-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .hero-description {
+      font-size: 0.9375rem;
+      color: var(--text-tertiary);
+      line-height: 1.7;
+    }
+
+    .hero-features {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem 1.5rem;
+      margin-top: 1rem;
+      font-size: 0.8125rem;
+      color: var(--text-tertiary);
+    }
+
+    .hero-features span {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+    }
+
+    /* Note Container */
+    .note-container {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      box-shadow: 0 4px 24px var(--shadow-color);
+      overflow: hidden;
+      transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .note-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .note-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .note-status.loading {
+      color: var(--info-text);
+    }
+
+    .note-status.success {
+      color: var(--success-text);
+    }
+
+    .note-status.error {
+      color: var(--error-text);
+    }
+
+    .note-status.burned {
+      color: var(--warning-text);
+    }
+
+    .note-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background: var(--brand-blue);
+      color: white;
+      border-color: var(--brand-blue);
+    }
+
+    .btn-primary:hover {
+      background: var(--brand-blue-dark);
+      border-color: var(--brand-blue-dark);
+    }
+
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      border-color: var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Note Content */
+    .note-content-wrapper {
+      padding: 1.5rem;
+      min-height: 300px;
+    }
+
+    .note-content {
       width: 100%;
-      padding: 40px;
-    }
-    
-    .logo {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    
-    .logo h1 {
-      font-size: 2rem;
-      color: #333;
-    }
-    
-    .logo span {
-      color: #667eea;
-    }
-    
-    .status {
-      text-align: center;
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-    }
-    
-    .status.loading {
-      background: #e3f2fd;
-      color: #1976d2;
-    }
-    
-    .status.success {
-      background: #e8f5e9;
-      color: #388e3c;
-    }
-    
-    .status.error {
-      background: #ffebee;
-      color: #d32f2f;
-    }
-    
-    .status.burned {
-      background: #fff3e0;
-      color: #f57c00;
-    }
-    
-    .content-box {
-      background: #f5f5f5;
-      border-radius: 8px;
-      padding: 20px;
-      margin-top: 20px;
-    }
-    
-    .content-box pre {
+      min-height: 300px;
+      max-height: 600px;
+      overflow: auto;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+      font-size: 0.9375rem;
+      line-height: 1.7;
+      color: var(--text-primary);
       white-space: pre-wrap;
       word-wrap: break-word;
-      font-family: 'Monaco', 'Menlo', monospace;
-      font-size: 14px;
-      line-height: 1.6;
+      word-break: break-all;
+      resize: vertical;
+      transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     }
-    
-    .warning {
-      background: #fff3e0;
-      border-left: 4px solid #ff9800;
-      padding: 15px;
-      margin-top: 20px;
-      border-radius: 4px;
+
+    .note-content:focus {
+      outline: none;
+      border-color: var(--brand-blue);
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
-    
-    .warning strong {
-      color: #e65100;
+
+    .note-content::placeholder {
+      color: var(--text-tertiary);
     }
-    
-    .copy-btn {
-      background: #667eea;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      margin-top: 15px;
-      width: 100%;
+
+    /* Status Messages */
+    .status-message {
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.9375rem;
     }
-    
-    .copy-btn:hover {
-      background: #5a6fd6;
+
+    .status-message.info {
+      background: var(--info-bg);
+      color: var(--info-text);
     }
-    
-    .copy-btn:active {
-      transform: scale(0.98);
+
+    .status-message.success {
+      background: var(--success-bg);
+      color: var(--success-text);
     }
-    
-    .footer {
-      text-align: center;
-      margin-top: 30px;
-      color: #666;
-      font-size: 14px;
+
+    .status-message.error {
+      background: var(--error-bg);
+      color: var(--error-text);
     }
-    
+
+    .status-message.warning {
+      background: var(--warning-bg);
+      color: var(--warning-text);
+    }
+
+    /* Warning Banner */
+    .warning-banner {
+      background: var(--warning-bg);
+      border-left: 4px solid var(--warning-text);
+      padding: 1rem 1.5rem;
+      margin: 1rem 1.5rem;
+      border-radius: 0 12px 12px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .warning-banner-icon {
+      color: var(--warning-text);
+      flex-shrink: 0;
+      margin-top: 0.125rem;
+    }
+
+    .warning-banner-content {
+      flex: 1;
+    }
+
+    .warning-banner-title {
+      font-weight: 600;
+      color: var(--warning-text);
+      margin-bottom: 0.25rem;
+    }
+
+    .warning-banner-text {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+
+    /* Loading Spinner */
     .spinner {
-      display: inline-block;
       width: 20px;
       height: 20px;
-      border: 3px solid #e3f2fd;
-      border-top-color: #1976d2;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
       border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-right: 10px;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
     }
-    
+
     @keyframes spin {
       to { transform: rotate(360deg); }
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: auto;
+      padding-top: 2rem;
+      text-align: center;
+    }
+
+    .footer-text {
+      font-size: 0.8125rem;
+      color: var(--text-tertiary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .footer-dot {
+      width: 4px;
+      height: 4px;
+      background: var(--brand-blue);
+      border-radius: 50%;
+    }
+
+    /* Hidden states */
+    .hidden {
+      display: none !important;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .header-content {
+        padding: 0.75rem 1rem;
+      }
+
+      .brand-text {
+        font-size: 1.125rem;
+      }
+
+      .main {
+        padding: 1rem;
+        gap: 1.5rem;
+      }
+
+      .hero {
+        padding: 0.5rem 0;
+      }
+
+      .hero-features {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .note-header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1rem;
+      }
+
+      .note-content-wrapper {
+        padding: 1rem;
+        min-height: 250px;
+      }
+
+      .note-content {
+        min-height: 250px;
+        padding: 1rem;
+        font-size: 0.875rem;
+      }
+
+      .warning-banner {
+        margin: 0.75rem 1rem;
+        padding: 0.875rem 1rem;
+      }
+
+      .btn {
+        padding: 0.5rem 0.875rem;
+        font-size: 0.8125rem;
+      }
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--gray-400);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--gray-500);
+    }
+
+    [data-theme="dark"] ::-webkit-scrollbar-thumb {
+      background: var(--gray-600);
+    }
+
+    [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+      background: var(--gray-500);
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="logo">
-      <h1>🔥 <span>Fad</span>Note</h1>
-      <p>Secure, self-destructing notes</p>
-    </div>
-    
-    <div id="status" class="status loading">
-      <span class="spinner"></span>
-      Retrieving secure note...
-    </div>
-    
-    <div id="content-area" style="display: none;">
-      <div class="content-box">
-        <pre id="content"></pre>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <a href="/" class="brand">
+        <img src="/images/apple-touch-icon.png" alt="FadNote" class="brand-logo">
+        <span class="brand-text"><span>Fad</span>Note</span>
+      </a>
+      <div class="theme-toggle" id="themeToggle" role="group" aria-label="Theme toggle">
+        <button class="theme-btn active" data-theme="light" aria-label="Light mode" title="Light mode">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+        </button>
+        <button class="theme-btn" data-theme="dark" aria-label="Dark mode" title="Dark mode">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
       </div>
-      <button class="copy-btn" onclick="copyContent()">📋 Copy to Clipboard</button>
     </div>
-    
-    <div class="warning" id="warning" style="display: none;">
-      <strong>⚠️ This note has been destroyed</strong><br>
-      It can no longer be viewed. Make sure you've saved any important information.
+  </header>
+
+  <!-- Main Content -->
+  <main class="main">
+    <!-- Hero Section -->
+    <section class="hero">
+      <h2 class="hero-title">
+        <span>🔒</span>
+        Burn after reading. Seriously.
+      </h2>
+      <p class="hero-description">
+        FadNote is a zero-knowledge note sharing service. Your secrets are encrypted in your browser
+        before they ever reach our servers. We can't read them, we can't recover them, and after one view—they're gone forever.
+      </p>
+      <div class="hero-features">
+        <span>🔐 Client-side encryption</span>
+        <span>🔥 One-time read</span>
+        <span>🕵️ Zero knowledge</span>
+        <span>⏰ Auto-expire</span>
+      </div>
+    </section>
+
+    <!-- Note Container -->
+    <div class="note-container">
+      <!-- Note Header -->
+      <div class="note-header">
+        <div class="note-status loading" id="status">
+          <span class="spinner"></span>
+          <span>Retrieving secure note...</span>
+        </div>
+        <div class="note-actions" id="noteActions" style="display: none;">
+          <button class="btn btn-secondary" onclick="copyContent()" id="copyBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            Copy
+          </button>
+        </div>
+      </div>
+
+      <!-- Warning Banner -->
+      <div class="warning-banner hidden" id="warningBanner">
+        <span class="warning-banner-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </span>
+        <div class="warning-banner-content">
+          <div class="warning-banner-title">This note has been destroyed</div>
+          <div class="warning-banner-text">
+            It can no longer be viewed by anyone. Make sure you've saved any important information before leaving this page.
+          </div>
+        </div>
+      </div>
+
+      <!-- Note Content -->
+      <div class="note-content-wrapper" id="contentWrapper" style="display: none;">
+        <textarea class="note-content" id="content" readonly></textarea>
+      </div>
+
+      <!-- Status Message (for errors) -->
+      <div class="note-content-wrapper" id="statusWrapper" style="display: none;">
+        <div class="status-message" id="statusMessage">
+          <span id="statusIcon"></span>
+          <span id="statusText"></span>
+        </div>
+      </div>
     </div>
-    
-    <div class="footer">
-      <p>🔒 End-to-end encrypted • One-time view • No server access to content</p>
-    </div>
-  </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p class="footer-text">
+        End-to-end encrypted
+        <span class="footer-dot"></span>
+        One-time view
+        <span class="footer-dot"></span>
+        No server access to content
+      </p>
+    </footer>
+  </main>
 
   <script>
+    // Theme management
+    const themeToggle = document.getElementById('themeToggle');
+    const themeBtns = themeToggle.querySelectorAll('.theme-btn');
+    const html = document.documentElement;
+
+    // Load saved theme or default to light
+    const savedTheme = localStorage.getItem('fadnote-theme') || 'light';
+    setTheme(savedTheme);
+
+    themeBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const theme = btn.dataset.theme;
+        setTheme(theme);
+        localStorage.setItem('fadnote-theme', theme);
+      });
+    });
+
+    function setTheme(theme) {
+      html.setAttribute('data-theme', theme);
+      themeBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.theme === theme);
+      });
+    }
+
     // Parse URL to get note ID and decryption key
     const url = new URL(window.location.href);
     const pathParts = url.pathname.split('/');
     const noteId = pathParts[pathParts.length - 1];
     const decryptionKey = url.hash.slice(1); // Remove the #
-    
+
     const statusEl = document.getElementById('status');
-    const contentAreaEl = document.getElementById('content-area');
+    const contentWrapperEl = document.getElementById('contentWrapper');
     const contentEl = document.getElementById('content');
-    const warningEl = document.getElementById('warning');
-    
+    const warningBannerEl = document.getElementById('warningBanner');
+    const noteActionsEl = document.getElementById('noteActions');
+    const statusWrapperEl = document.getElementById('statusWrapper');
+    const statusMessageEl = document.getElementById('statusMessage');
+
     async function loadNote() {
       try {
         if (!noteId || noteId === 'n') {
           throw new Error('No note ID provided');
         }
-        
+
         // Fetch the encrypted note from server
         const response = await fetch(`/n/${noteId}/data`);
-        
+
         if (!response.ok) {
           if (response.status === 404) {
             throw new Error('Note not found or already viewed');
           }
           throw new Error('Failed to retrieve note');
         }
-        
+
         // Get the encrypted blob
         const encryptedBlob = await response.arrayBuffer();
-        
+
         // If no decryption key in URL, show error
         if (!decryptionKey) {
           throw new Error('No decryption key provided. Check the full URL including the # part.');
         }
-        
+
         // Decrypt the content
         const decryptedContent = await decryptNote(encryptedBlob, decryptionKey);
-        
+
         // Show the content
-        contentEl.textContent = decryptedContent;
-        contentAreaEl.style.display = 'block';
-        warningEl.style.display = 'block';
-        
-        statusEl.className = 'status success';
-        statusEl.innerHTML = '✅ Note decrypted successfully';
-        
+        contentEl.value = decryptedContent;
+        contentWrapperEl.style.display = 'block';
+        warningBannerEl.classList.remove('hidden');
+        noteActionsEl.style.display = 'flex';
+
+        statusEl.className = 'note-status success';
+        statusEl.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <span>Note decrypted successfully</span>
+        `;
+
       } catch (error) {
-        statusEl.className = 'status error';
-        statusEl.innerHTML = `❌ ${error.message}`;
-        
-        if (error.message.includes('already viewed')) {
-          statusEl.className = 'status burned';
-        }
+        const isBurned = error.message.includes('already viewed');
+
+        statusEl.className = `note-status ${isBurned ? 'burned' : 'error'}`;
+        statusEl.innerHTML = isBurned ? `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8.56 2.9A7 7 0 0 1 19 9v4m-2 4H2a3 3 0 0 0 3-3V9a7 7 0 0 1 7-7h9a2 2 0 0 1 2 2v11"/>
+            <path d="M8.56 2.9A7 7 0 0 0 3 9v8"/>
+            <path d="M13 22s0-2 2-5l-2-3c0 3-2 5-2 5"/>
+          </svg>
+          <span>Note has been destroyed</span>
+        ` : `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+          <span>${error.message}</span>
+        `;
+
+        statusWrapperEl.style.display = 'block';
+        statusMessageEl.className = `status-message ${isBurned ? 'warning' : 'error'}`;
+        statusMessageEl.innerHTML = `
+          <span>${isBurned ? '🔥' : '❌'}</span>
+          <span>${error.message}</span>
+        `;
       }
     }
-    
+
     async function decryptNote(encryptedBlob, key) {
       // Parse the encrypted data
       const encrypted = JSON.parse(new TextDecoder().decode(encryptedBlob));
-      
+
       const salt = base64ToArrayBuffer(encrypted.salt);
       const iv = base64ToArrayBuffer(encrypted.iv);
       const ciphertext = base64ToArrayBuffer(encrypted.ciphertext);
-      
+
       // Derive key using PBKDF2
       const encoder = new TextEncoder();
       const passwordBuffer = encoder.encode(key);
-      
+
       const baseKey = await crypto.subtle.importKey(
         'raw',
         passwordBuffer,
@@ -246,7 +768,7 @@
         false,
         ['deriveKey']
       );
-      
+
       const cryptoKey = await crypto.subtle.deriveKey(
         {
           name: 'PBKDF2',
@@ -259,17 +781,17 @@
         false,
         ['decrypt']
       );
-      
+
       // Decrypt
       const plaintextBuffer = await crypto.subtle.decrypt(
         { name: 'AES-GCM', iv: new Uint8Array(iv) },
         cryptoKey,
         ciphertext
       );
-      
+
       return new TextDecoder().decode(plaintextBuffer);
     }
-    
+
     function base64ToArrayBuffer(base64) {
       // Convert base64url to standard base64 if needed
       // Replace '-' with '+' and '_' with '/'
@@ -288,18 +810,29 @@
       }
       return bytes.buffer;
     }
-    
+
     function copyContent() {
-      const content = contentEl.textContent;
+      const content = contentEl.value;
       navigator.clipboard.writeText(content).then(() => {
-        const btn = document.querySelector('.copy-btn');
-        btn.textContent = '✅ Copied!';
+        const btn = document.getElementById('copyBtn');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 6L9 17l-5-5"/>
+          </svg>
+          Copied!
+        `;
+        btn.classList.remove('btn-secondary');
+        btn.classList.add('btn-primary');
+
         setTimeout(() => {
-          btn.textContent = '📋 Copy to Clipboard';
+          btn.innerHTML = originalHTML;
+          btn.classList.remove('btn-primary');
+          btn.classList.add('btn-secondary');
         }, 2000);
       });
     }
-    
+
     // Load the note when page loads
     loadNote();
   </script>

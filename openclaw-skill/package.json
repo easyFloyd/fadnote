@@ -1,5 +1,5 @@
 {
-  "name": "@easyfloyd/claw-fadnote",
+  "name": "@openclaw/fadnote",
   "version": "1.0.0",
   "description": "OpenClaw skill for secure self-destructing notes",
   "main": "scripts/fadnote.js",
