@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-const FADNOTE_URL = process.env.FADNOTE_URL || 'https://fadnote-dc.drofty.com';
+const FADNOTE_URL = process.env.FADNOTE_URL || 'https://fadnote.com';
 
 async function readNote() {
   // Read from stdin if no arguments, or from args

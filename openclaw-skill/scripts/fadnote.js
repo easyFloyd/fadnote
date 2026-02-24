@@ -7,7 +7,7 @@
 import crypto from 'crypto';
 import https from 'https';
 
-const FADNOTE_URL = process.env.FADNOTE_URL || 'https://fadnote-dc.drofty.com';
+const FADNOTE_URL = process.env.FADNOTE_URL || 'https://fadnote.com';
 const MAX_SIZE = 1024 * 1024; // 1MB
 
 async function readInput() {

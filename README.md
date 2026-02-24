@@ -2,7 +2,7 @@
 
 > Burn after reading. Seriously.
 
-[![Live](https://img.shields.io/badge/live-fadnote--dc.drofty.com-blue)](https://fadnote-dc.drofty.com)
+[![Live](https://img.shields.io/badge/live-fadnote.com-blue)](https://fadnote.com)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 **Free, secure, self-destructing notes for developers who actually care about privacy.**
@@ -20,7 +20,7 @@ FadNote is a zero-knowledge note sharing service. Think of it as Privnote's intr
 - ⏰ **Auto-expire** — Notes vaporize after 24 hours (or your custom TTL)
 - 🕵️ **Zero knowledge** — We can't read your notes even if we wanted to
 
-Live instance: **https://fadnote-dc.drofty.com**
+Live instance: **https://fadnote.com**
 
 *(Free for everyone. Because privacy shouldn't cost money.)*
 
@@ -61,18 +61,18 @@ Outputs a shareable link. Copy, paste, done.
 ```bash
 # Encrypt something (client-side, obviously)
 # Then POST the encrypted blob
-curl -X POST https://fadnote-dc.drofty.com/n \
+curl -X POST https://fadnote.com/n \
   -H "Content-Type: application/octet-stream" \
   -H "X-Note-TTL: 3600" \
   --data-binary @encrypted-note.bin
 
 # Response: {"id": "abc123", "expiresIn": 3600}
-# Share: https://fadnote-dc.drofty.com/n/abc123#YOUR_DECRYPTION_KEY
+# Share: https://fadnote.com/n/abc123#YOUR_DECRYPTION_KEY
 ```
 
 ### Option 3: Open in Browser
 
-1. Visit `https://fadnote-dc.drofty.com/n/YOUR_ID`
+1. Visit `https://fadnote.com/n/YOUR_ID`
 2. If the note exists, it decrypts in your browser
 3. Refresh = gone forever
 

@@ -51,7 +51,7 @@ ln -s $(pwd)/fadnote/openclaw-skill/scripts/fadnote.js ~/.claw/bin/fadnote
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `FADNOTE_URL` | `https://fadnote-dc.drofty.com` | FadNote server endpoint |
+| `FADNOTE_URL` | `https://fadnote.com` | FadNote server endpoint |
 
 ---
 
@@ -65,7 +65,7 @@ user: Secure this API key: sk-abc123xyz
 claw: I'll create a secure, self-destructing note for that.
       [runs: echo "sk-abc123xyz" | fadnote]
 
-      🔗 https://fadnote-dc.drofty.com/n/abc123# decryption-key-here
+      🔗 https://fadnote.com/n/abc123# decryption-key-here
 
       Share it with the recipient via any channel and this link will self-destruct after first view.
 ```
@@ -150,7 +150,7 @@ openclaw-skill/
 
 | Error | Cause | Solution |
 |-------|-------|----------|
-| `FADNOTE_URL not set` | Environment variable missing | `export FADNOTE_URL=https://fadnote-dc.drofty.com` |
+| `FADNOTE_URL not set` | Environment variable missing | `export FADNOTE_URL=https://fadnote.com` |
 | `Empty note` | No input provided | Pipe text into fadnote: `echo "secret" \| fadnote` |
 | `404 Not Found` | Server endpoint wrong | Check `FADNOTE_URL` points to a running FadNote instance |
 | `Connection refused` | Server unreachable | Verify server is up or use the live service |
@@ -160,6 +160,6 @@ openclaw-skill/
 
 ## Links
 
-- **Live Service:** https://fadnote-dc.drofty.com
+- **Live Service:** https://fadnote.com
 - **Source:** https://github.com/easyFloyd/fadnote
 - **Issues:** https://github.com/easyFloyd/fadnote/issues
