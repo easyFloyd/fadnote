@@ -13,4 +13,6 @@ export function setupCommonMiddleware(app: Hono<{ Variables: Variables }>) {
 
   // Serve static files from public directory
   app.use('/images/*', serveStatic({ root: './public' }));
+  app.use('/css/*', serveStatic({ root: './public' }));
+  app.use('/js/*', serveStatic({ root: './public' }));
 }

@@ -11,342 +11,92 @@
   <meta name="apple-mobile-web-app-title" content="FadNote" />
   <link rel="manifest" href="/images/site.webmanifest" />
 
+  <!-- Critical CSS inlined for fast first paint -->
   <style>
     :root {
-      --gray-50: #fafafa;
-      --gray-100: #f5f5f5;
-      --gray-200: #e5e5e5;
-      --gray-300: #d4d4d4;
-      --gray-400: #a3a3a3;
-      --gray-500: #737373;
-      --gray-600: #525252;
-      --gray-700: #404040;
-      --gray-800: #262626;
-      --gray-900: #171717;
-      --brand-blue: #667eea;
-      --brand-blue-dark: #5a6fd6;
-      --brand-blue-light: #7b8eec;
-      --bg-primary: var(--gray-50);
-      --bg-secondary: white;
-      --bg-tertiary: var(--gray-100);
-      --text-primary: var(--gray-900);
-      --text-secondary: var(--gray-600);
-      --text-tertiary: var(--gray-500);
-      --border-color: var(--gray-200);
-      --shadow-color: rgba(0, 0, 0, 0.08);
+      --gray-50: #fafafa; --gray-100: #f5f5f5; --gray-200: #e5e5e5; --gray-300: #d4d4d4;
+      --gray-400: #a3a3a3; --gray-500: #737373; --gray-600: #525252; --gray-700: #404040;
+      --gray-800: #262626; --gray-900: #171717;
+      --brand-blue: #667eea; --brand-blue-dark: #5a6fd6; --brand-blue-light: #7b8eec;
+      --bg-primary: var(--gray-50); --bg-secondary: white; --bg-tertiary: var(--gray-100);
+      --text-primary: var(--gray-900); --text-secondary: var(--gray-600); --text-tertiary: var(--gray-500);
+      --border-color: var(--gray-200); --shadow-color: rgba(0, 0, 0, 0.08);
     }
-
     [data-theme="dark"] {
-      --bg-primary: var(--gray-900);
-      --bg-secondary: var(--gray-800);
-      --bg-tertiary: var(--gray-700);
-      --text-primary: var(--gray-50);
-      --text-secondary: var(--gray-400);
-      --text-tertiary: var(--gray-500);
-      --border-color: var(--gray-700);
-      --shadow-color: rgba(0, 0, 0, 0.3);
+      --bg-primary: var(--gray-900); --bg-secondary: var(--gray-800); --bg-tertiary: var(--gray-700);
+      --text-primary: var(--gray-50); --text-secondary: var(--gray-400); --text-tertiary: var(--gray-500);
+      --border-color: var(--gray-700); --shadow-color: rgba(0, 0, 0, 0.3);
     }
-
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; }
-
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      min-height: 100vh;
-      line-height: 1.6;
-      transition: background 0.3s ease, color 0.3s ease;
+      background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; line-height: 1.6;
     }
-
     .header {
-      background: var(--bg-secondary);
-      border-bottom: 1px solid var(--border-color);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      background: var(--bg-secondary); border-bottom: 1px solid var(--border-color);
+      position: sticky; top: 0; z-index: 100;
     }
-
     .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 1rem 1.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      max-width: 1200px; margin: 0 auto; padding: 1rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
     }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      text-decoration: none;
-    }
-
-    .brand-logo {
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      flex-shrink: 0;
-      object-fit: cover;
-    }
-
-    .brand-text {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--text-primary);
-      letter-spacing: -0.02em;
-    }
-
+    .brand { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+    .brand-logo { width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0; object-fit: cover; }
+    .brand-text { font-size: 1.25rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; }
     .brand-text span { color: var(--brand-blue); }
-
-    .nav {
-      display: flex;
-      align-items: center;
-      gap: 1.5rem;
-      margin-left: auto;
-      margin-right: 1rem;
-    }
-
-    .nav-link {
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-      text-decoration: none;
-      transition: color 0.2s ease;
-    }
-
+    .nav { display: flex; align-items: center; gap: 1.5rem; margin-left: auto; margin-right: 1rem; }
+    .nav-link { font-size: 0.875rem; font-weight: 500; color: var(--text-secondary); text-decoration: none; transition: color 0.2s ease; }
     .nav-link:hover { color: var(--brand-blue); }
-
     .nav-link.active { color: var(--brand-blue); }
-
-    /* GitHub Link */
-    .github-link {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 36px;
-      height: 36px;
-      color: var(--text-secondary);
-      transition: color 0.2s ease;
-      margin-right: 0.5rem;
-    }
-
+    .github-link { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; color: var(--text-secondary); transition: color 0.2s ease; margin-right: 0.5rem; }
     .github-link:hover { color: var(--text-primary); }
-
-    .theme-toggle {
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border-color);
-      border-radius: 50px;
-      padding: 0.25rem;
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
+    .theme-toggle { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 50px; padding: 0.25rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer; transition: all 0.2s ease; }
     .theme-toggle:hover { border-color: var(--brand-blue); }
-
-    .theme-btn {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      border: none;
-      background: transparent;
-      color: var(--text-tertiary);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-    }
-
-    .theme-btn.active {
-      background: var(--bg-secondary);
-      color: var(--brand-blue);
-      box-shadow: 0 2px 4px var(--shadow-color);
-    }
-
-    .main {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2rem 1.5rem;
-      display: flex;
-      gap: 2rem;
-    }
-
-    .sidebar {
-      width: 240px;
-      flex-shrink: 0;
-      position: sticky;
-      top: 80px;
-      height: fit-content;
-    }
-
-    .sidebar-title {
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-tertiary);
-      margin-bottom: 1rem;
-    }
-
-    .sidebar-nav {
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-    }
-
-    .sidebar-link {
-      padding: 0.5rem 0.75rem;
-      border-radius: 8px;
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-      text-decoration: none;
-      transition: all 0.2s ease;
-    }
-
-    .sidebar-link:hover {
-      background: var(--bg-tertiary);
-      color: var(--text-primary);
-    }
-
-    .content {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .page-title {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 2rem;
-      color: var(--text-primary);
-    }
-
-    .faq-section {
-      margin-bottom: 3rem;
-    }
-
-    .faq-section-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 1.5rem;
-      padding-bottom: 0.75rem;
-      border-bottom: 2px solid var(--brand-blue);
-      display: inline-block;
-    }
-
-    .faq-item {
-      margin-bottom: 1.5rem;
-      padding: 1.25rem;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      box-shadow: 0 2px 8px var(--shadow-color);
-    }
-
-    .faq-question {
-      font-weight: 600;
-      color: var(--brand-blue);
-      margin-bottom: 0.75rem;
-      font-size: 1rem;
-    }
-
-    .faq-answer {
-      color: var(--text-secondary);
-      line-height: 1.7;
-    }
-
-    .faq-answer a {
-      color: var(--brand-blue);
-      text-decoration: none;
-    }
-
+    .theme-btn { width: 32px; height: 32px; border-radius: 50%; border: none; background: transparent; color: var(--text-tertiary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
+    .theme-btn.active { background: var(--bg-secondary); color: var(--brand-blue); box-shadow: 0 2px 4px var(--shadow-color); }
+    body .main { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; display: flex; flex-direction: row; gap: 2rem; }
+    /* FAQ-specific critical styles */
+    .sidebar { width: 240px; flex-shrink: 0; position: sticky; top: 80px; height: fit-content; }
+    .sidebar-title { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); margin-bottom: 1rem; }
+    .sidebar-nav { display: flex; flex-direction: column; gap: 0.25rem; }
+    .sidebar-link { padding: 0.5rem 0.75rem; border-radius: 8px; font-size: 0.875rem; color: var(--text-secondary); text-decoration: none; transition: all 0.2s ease; }
+    .sidebar-link:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+    .content { flex: 1; min-width: 0; }
+    .page-title { font-size: 2rem; font-weight: 700; margin-bottom: 2rem; color: var(--text-primary); }
+    .faq-section { margin-bottom: 3rem; }
+    .faq-section-title { font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--brand-blue); display: inline-block; }
+    .faq-item { margin-bottom: 1.5rem; padding: 1.25rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 2px 8px var(--shadow-color); }
+    .faq-question { font-weight: 600; color: var(--brand-blue); margin-bottom: 0.75rem; font-size: 1rem; }
+    .faq-answer { color: var(--text-secondary); line-height: 1.7; }
+    .faq-answer a { color: var(--brand-blue); text-decoration: none; }
     .faq-answer a:hover { text-decoration: underline; }
-
-    .faq-answer ul,
-    .faq-answer ol {
-      margin-left: 1.25rem;
-      margin-top: 0.5rem;
-    }
-
-    .faq-answer li {
-      margin-bottom: 0.25rem;
-    }
-
-    .separator {
-      border: none;
-      border-top: 1px solid var(--border-color);
-      margin: 2rem 0;
-    }
-
-    .footer {
-      max-width: 1200px;
-      margin: 3rem auto 0;
-      padding: 2rem 1.5rem;
-      text-align: center;
-      border-top: 1px solid var(--border-color);
-    }
-
-    .footer-text {
-      font-size: 0.8125rem;
-      color: var(--text-tertiary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-    }
-
-    .footer-dot {
-      width: 4px;
-      height: 4px;
-      background: var(--brand-blue);
-      border-radius: 50%;
-    }
-
+    .faq-answer ul, .faq-answer ol { margin-left: 1.25rem; margin-top: 0.5rem; }
+    .faq-answer li { margin-bottom: 0.25rem; }
+    .footer { max-width: 1200px; margin: 3rem auto 0; padding: 2rem 1.5rem; text-align: center; border-top: 1px solid var(--border-color); }
+    .footer-text { font-size: 0.8125rem; color: var(--text-tertiary); display: flex; align-items: center; justify-content: center; gap: 0.75rem; flex-wrap: wrap; }
+    .footer-dot { width: 4px; height: 4px; background: var(--brand-blue); border-radius: 50%; }
     @media (max-width: 768px) {
-      .main {
-        flex-direction: column;
-        padding: 1rem;
-      }
-
-      .sidebar {
-        width: 100%;
-        position: static;
-      }
-
-      .sidebar-nav {
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-      }
-
-      .page-title {
-        font-size: 1.5rem;
-      }
-
-      .nav {
-        gap: 0.75rem;
-        margin-right: 0.5rem;
-      }
-
-      .nav-link {
-        font-size: 0.8125rem;
-      }
-
-      .sidebar {
-        display: none;
-      }
+      body .main { flex-direction: column; padding: 1rem; }
+      .sidebar { display: none; }
+      .page-title { font-size: 1.5rem; }
+      .nav { gap: 0.75rem; margin-right: 0.5rem; }
+      .nav-link { font-size: 0.8125rem; }
     }
-
-    [data-theme="dark"] .faq-section-title {
-      border-color: var(--brand-blue-light);
-    }
+    [data-theme="dark"] .faq-section-title { border-color: var(--brand-blue-light); }
   </style>
+
+  <!-- Async load shared CSS -->
+  <link rel="preload" href="/css/styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/css/styles.css"></noscript>
+
+  <!-- Prevent flash of wrong theme -->
+  <script>
+    (function() {
+      var theme = localStorage.getItem('fadnote-theme') || 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
 </head>
 <body>
   <header class="header">
@@ -398,7 +148,7 @@
       <h1 class="page-title">Frequently Asked Questions</h1>
 
       <section class="faq-section" id="security">
-        <h2 class="faq-section-title">🔐 Security & Privacy</h2>
+        <h2 class="faq-section-title">Security & Privacy</h2>
 
         <div class="faq-item">
           <div class="faq-question">Q: Can the server read my notes?</div>
@@ -422,7 +172,7 @@
       </section>
 
       <section class="faq-section" id="self-destruct">
-        <h2 class="faq-section-title">💨 Self-Destruction & Expiration</h2>
+        <h2 class="faq-section-title">Self-Destruction & Expiration</h2>
 
         <div class="faq-item">
           <div class="faq-question">Q: What does "self-destruct" mean?</div>
@@ -446,7 +196,7 @@
       </section>
 
       <section class="faq-section" id="usage">
-        <h2 class="faq-section-title">🚀 Usage</h2>
+        <h2 class="faq-section-title">Usage</h2>
 
         <div class="faq-item">
           <div class="faq-question">Q: What's the maximum note size?</div>
@@ -470,7 +220,7 @@
       </section>
 
       <section class="faq-section" id="technical">
-        <h2 class="faq-section-title">🔧 Technical</h2>
+        <h2 class="faq-section-title">Technical</h2>
 
         <div class="faq-item">
           <div class="faq-question">Q: What encryption algorithm does FadNote use?</div>
@@ -494,7 +244,7 @@
       </section>
 
       <section class="faq-section" id="self-hosting">
-        <h2 class="faq-section-title">🏠 Self-Hosting</h2>
+        <h2 class="faq-section-title">Self-Hosting</h2>
 
         <div class="faq-item">
           <div class="faq-question">Q: Can I run my own FadNote server?</div>
@@ -516,7 +266,7 @@
       </section>
 
       <section class="faq-section" id="troubleshooting">
-        <h2 class="faq-section-title">🐛 Troubleshooting</h2>
+        <h2 class="faq-section-title">Troubleshooting</h2>
 
         <div class="faq-item">
           <div class="faq-question">Q: I get "Note not found or already viewed"</div>
@@ -542,7 +292,7 @@
       </section>
 
       <section class="faq-section" id="trust">
-        <h2 class="faq-section-title">🤝 Trust & Verification</h2>
+        <h2 class="faq-section-title">Trust & Verification</h2>
 
         <div class="faq-item">
           <div class="faq-question">Q: How do I know the server isn't logging my data?</div>
@@ -577,28 +327,7 @@
     </p>
   </footer>
 
-  <script>
-    const themeToggle = document.getElementById('themeToggle');
-    const themeBtns = themeToggle.querySelectorAll('.theme-btn');
-    const html = document.documentElement;
-
-    const savedTheme = localStorage.getItem('fadnote-theme') || 'light';
-    setTheme(savedTheme);
-
-    themeBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const theme = btn.dataset.theme;
-        setTheme(theme);
-        localStorage.setItem('fadnote-theme', theme);
-      });
-    });
-
-    function setTheme(theme) {
-      html.setAttribute('data-theme', theme);
-      themeBtns.forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.theme === theme);
-      });
-    }
-  </script>
+  <!-- Shared theme manager -->
+  <script src="/js/theme.js"></script>
 </body>
 </html>
