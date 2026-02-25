@@ -17,13 +17,17 @@ services:
       - fadnote-network
 
   fadnote:
-    build: .
+    build:
+      context: .
+      args:
+        - PORT=${PORT:-3000}
     container_name: fadnote-app
     ports:
-      - "${PORT:-3000}:3000"
+      - "${PORT:-3000}:${PORT:-3000}"
     env_file:
       - .env
     environment:
+      - PORT=${PORT:-3000}
       - STORAGE_TYPE=redis
       - REDIS_URL=redis://redis:6379
       - FS_STORAGE_PATH=/app/data/notes
@@ -33,7 +37,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${PORT:-3000}/health"]
       interval: 30s
       timeout: 10s
       retries: 3
