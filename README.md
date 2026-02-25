@@ -238,7 +238,7 @@ MIT. Do whatever. Just don't use it for evil.
 ## 🙋 FAQ
 
 **Q: Is this really free?**
-A: Yes. The hosted version is my gift to the privacy-conscious. Self-host if you want. If it saves you time, consider [buying me a coffee](https://fadnote.com).
+A: Yes. The hosted version is my gift to the privacy-conscious. Self-host if you want. If it saves you time, or just like it consider ☕ [buying me a coffee](https://buymeacoffee.com/easyfloyd).
 
 **Q: Can you recover a note I accidentally deleted?**
 A: No. We don't have the decryption key. We don't even have the encrypted blob after first read.
