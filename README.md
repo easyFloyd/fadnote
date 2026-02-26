@@ -8,7 +8,7 @@
 **FadNote** is an open-source, zero-knowledge note sharing service that works where you do:
 - **OpenClaw** — AI-powered workflow automation
 - **Obsidian** — Your knowledge base (plugin coming soon)
-- **CLI** — Terminal warriors welcome
+- **CLI** — Script it your way
 
 Your secrets are encrypted client-side before they ever reach our servers. We can't read them, we can't recover them, and after one view **they're faded forever.**
 
