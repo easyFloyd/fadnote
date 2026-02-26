@@ -19,9 +19,6 @@ RUN npm run build
 # Production stage - using a smaller base image
 FROM node:20-alpine AS runtime
 
-# Install wget for healthchecks
-RUN apk add --no-cache wget
-
 # Create a non-root user
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
@@ -45,7 +42,5 @@ RUN mkdir -p /app/data/notes && \
 
 # Switch to non-root user
 USER nodejs
-
-EXPOSE 3000
 
 CMD ["node", "dist/index.js"]

@@ -17,10 +17,7 @@ services:
       - fadnote-network
 
   fadnote:
-    build:
-      context: .
-      args:
-        - PORT=${PORT:-3000}
+    build: .
     container_name: fadnote-app
     ports:
       - "${PORT:-3000}:${PORT:-3000}"
