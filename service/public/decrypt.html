@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FadNote - Secure Self-Destructing Note</title>
+
+  <link rel="icon" type="image/png" href="/images/favicon-96x96.png" sizes="96x96" />
+  <link rel="shortcut icon" href="/images/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-title" content="FadNote" />
+  <link rel="manifest" href="/images/site.webmanifest" />
+
+  <!-- Inline Critical CSS -->
+  <style>
+    :root {
+      --gray-50: #fafafa; --gray-100: #f5f5f5; --gray-200: #e5e5e5;
+      --gray-300: #d4d4d4; --gray-400: #a3a3a3; --gray-500: #737373;
+      --gray-600: #525252; --gray-700: #404040; --gray-800: #262626; --gray-900: #171717;
+      --brand-blue: #667eea; --brand-blue-dark: #5a6fd6; --brand-blue-light: #7b8eec;
+      --bg-primary: var(--gray-50); --bg-secondary: white; --bg-tertiary: var(--gray-100);
+      --text-primary: var(--gray-900); --text-secondary: var(--gray-600); --text-tertiary: var(--gray-500);
+      --border-color: var(--gray-200); --shadow-color: rgba(0, 0, 0, 0.08);
+      --info-bg: #eff6ff; --info-text: #2563eb;
+    }
+    [data-theme="dark"] {
+      --bg-primary: var(--gray-900); --bg-secondary: var(--gray-800); --bg-tertiary: var(--gray-700);
+      --text-primary: var(--gray-50); --text-secondary: var(--gray-400); --text-tertiary: var(--gray-500);
+      --border-color: var(--gray-700); --shadow-color: rgba(0, 0, 0, 0.3);
+      --info-bg: #1e3a8a; --info-text: #93c5fd;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; line-height: 1.6;
+    }
+    .header {
+      background: var(--bg-secondary); border-bottom: 1px solid var(--border-color);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .header-content {
+      max-width: 1200px; margin: 0 auto; padding: 1rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .brand { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+    .brand-logo { width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0; object-fit: cover; }
+    .brand-text { font-size: 1.25rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; }
+    .brand-text span { color: var(--brand-blue); }
+    .nav { display: flex; align-items: center; gap: 1.5rem; margin-left: auto; margin-right: 1rem; }
+    .nav-link { font-size: 0.875rem; font-weight: 500; color: var(--text-secondary); text-decoration: none; }
+    .nav-link:hover, .nav-link.active { color: var(--brand-blue); }
+    .github-link {
+      display: flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; color: var(--text-secondary); margin-right: 0.5rem;
+    }
+    .theme-toggle {
+      background: var(--bg-tertiary); border: 1px solid var(--border-color);
+      border-radius: 50px; padding: 0.25rem; display: flex; align-items: center; gap: 0.25rem;
+    }
+    .theme-btn {
+      width: 32px; height: 32px; border-radius: 50%; border: none;
+      background: transparent; color: var(--text-tertiary); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .theme-btn.active { background: var(--bg-secondary); color: var(--brand-blue); box-shadow: 0 2px 4px var(--shadow-color); }
+    .main { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; display: flex; flex-direction: column; gap: 2rem; }
+    .hero {
+      text-align: center; width: 100%; padding: 1.5rem;
+      background: linear-gradient(135deg, var(--brand-blue-light) 0%, var(--brand-blue-dark) 100%);
+      border-radius: 16px; color: white; box-shadow: 0 4px 24px rgba(102, 126, 234, 0.25);
+    }
+    .hero-title { font-size: 1.25rem; font-weight: 700; color: white; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+    .hero-description { font-size: 0.9375rem; color: rgba(255, 255, 255, 0.9); line-height: 1.7; }
+    .hero-features { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem 1.5rem; margin-top: 1.25rem; font-size: 0.8125rem; color: rgba(255, 255, 255, 0.8); }
+    .hero-features span { display: flex; align-items: center; gap: 0.375rem; background: rgba(255, 255, 255, 0.15); padding: 0.375rem 0.75rem; border-radius: 20px; }
+    .note-container { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 4px 24px var(--shadow-color); overflow: hidden; }
+    .note-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    .note-status { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500; }
+    .note-status.loading { color: var(--info-text); }
+    .spinner { width: 20px; height: 20px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .note-content-wrapper { padding: 1.5rem; }
+    .note-content-wrapper.has-content { min-height: 300px; }
+    .note-content { width: 100%; min-height: 200px; max-height: 600px; overflow: auto; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace; font-size: 0.9375rem; line-height: 1.7; color: var(--text-primary); white-space: pre-wrap; word-wrap: break-word; word-break: break-all; resize: vertical; }
+    .status-message { padding: 1rem 1.5rem; border-radius: 12px; display: flex; align-items: center; gap: 0.75rem; font-size: 0.9375rem; }
+    .status-message.info { background: var(--info-bg); color: var(--info-text); }
+    .integrations { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
+    .integration-card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.5rem; display: flex; align-items: flex-start; gap: 1rem; transition: all 0.2s ease; text-decoration: none; color: inherit; }
+    .integration-card:hover { border-color: var(--brand-blue); box-shadow: 0 4px 12px var(--shadow-color); transform: translateY(-2px); }
+    .integration-icon { width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .integration-icon.clawhub { background: linear-gradient(135deg, var(--brand-blue-light) 0%, var(--brand-blue-dark) 100%); }
+    .integration-icon.obsidian { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); }
+    .integration-content { flex: 1; }
+    .integration-title { font-size: 1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem; }
+    .integration-desc { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.5; }
+    .integration-coming-soon { display: inline-block; font-size: 0.75rem; font-weight: 500; color: var(--brand-blue); background: var(--info-bg); padding: 0.125rem 0.5rem; border-radius: 4px; margin-top: 0.5rem; }
+    .footer { margin-top: auto; padding-top: 2rem; text-align: center; }
+    .footer-text { font-size: 0.8125rem; color: var(--text-tertiary); display: flex; align-items: center; justify-content: center; gap: 0.75rem; flex-wrap: wrap; }
+    .footer-dot { width: 4px; height: 4px; background: var(--brand-blue); border-radius: 50%; }
+    .hidden { display: none !important; }
+    @media (max-width: 640px) {
+      .header-content { padding: 0.75rem 1rem; }
+      .nav { gap: 0.75rem; margin-right: 0.5rem; }
+      .nav-link { font-size: 0.8125rem; }
+      .main { padding: 1rem; gap: 1.5rem; }
+      .hero { padding: 1rem; margin: 0 0.5rem; }
+      .hero-features { flex-direction: column; gap: 0.5rem; }
+      .integrations { grid-template-columns: 1fr; gap: 1rem; }
+      .integration-card { padding: 1rem; }
+      .integration-icon { width: 40px; height: 40px; }
+    }
+    [data-theme="dark"] .hero { background: linear-gradient(135deg, #4c5aa8 0%, #3d4a85 100%); box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3); }
+  </style>
+
+  <!-- Async load full CSS -->
+  <link rel="preload" href="/css/styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/css/styles.css"></noscript>
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <a href="/" class="brand">
+        <img src="/images/apple-touch-icon.png" alt="FadNote" class="brand-logo">
+        <span class="brand-text"><span>Fad</span>Note</span>
+      </a>
+      <nav class="nav">
+        <a href="/" class="nav-link active">Home</a>
+        <a href="/faq.html" class="nav-link">FAQ</a>
+      </nav>
+      <a href="https://github.com/easyFloyd/fadnote" target="_blank" rel="noopener" class="github-link" aria-label="GitHub" title="View on GitHub">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+      </a>
+      <div class="theme-toggle" id="themeToggle" role="group" aria-label="Theme toggle">
+        <button class="theme-btn active" data-theme="light" aria-label="Light mode" title="Light mode">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+        </button>
+        <button class="theme-btn" data-theme="dark" aria-label="Dark mode" title="Dark mode">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="hero">
+      <h2 class="hero-title">
+        <span>🔒</span>
+        Share once, then fade away.
+      </h2>
+      <p class="hero-description">
+        <b>FadNote</b> is an open-source, zero-knowledge note sharing service that works where you do—<b>OpenClaw, Obsidian, or CLI</b>.
+        Your secrets are encrypted client-side before they ever reach our servers.
+        We can't read them, we can't recover them, and after one view—<b>they're faded forever.</b>
+      </p>
+      <div class="hero-features">
+        <span>🔐 Client-side encryption</span>
+        <span>🔥 One-time read</span>
+        <span>🕵️ Zero knowledge</span>
+        <span>⏰ Auto-expire</span>
+        <span>🔓 Open-source</span>
+      </div>
+    </section>
+
+    <div class="note-container">
+      <div class="note-header">
+        <div class="note-status loading" id="status">
+          <span class="spinner"></span>
+          <span>Retrieving secure note...</span>
+        </div>
+        <div class="note-actions" id="noteActions" style="display: none;">
+          <button class="btn btn-secondary" onclick="copyContent()" id="copyBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            Copy
+          </button>
+        </div>
+      </div>
+
+      <div class="warning-banner hidden" id="warningBanner">
+        <span class="warning-banner-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </span>
+        <div class="warning-banner-content">
+          <div class="warning-banner-title">This note has been destroyed</div>
+          <div class="warning-banner-text">
+            It can no longer be viewed by anyone. Make sure you've saved any important information before leaving this page.
+          </div>
+        </div>
+      </div>
+
+      <div class="note-content-wrapper" id="contentWrapper" style="display: none;">
+        <textarea class="note-content" id="content" readonly></textarea>
+      </div>
+
+      <div class="note-content-wrapper" id="statusWrapper" style="display: none;">
+        <div class="status-message" id="statusMessage">
+          <span id="statusIcon"></span>
+          <span id="statusText"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="integrations">
+      <a href="https://github.com/openclaw-org/clawhub" target="_blank" rel="noopener" class="integration-card">
+        <div class="integration-icon clawhub">
+          <svg width="48" height="48" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="lobster-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ff4d4d"/>
+                <stop offset="100%" stop-color="#991b1b"/>
+              </linearGradient>
+            </defs>
+            <path d="M60 10 C30 10 15 35 15 55 C15 75 30 95 45 100 L45 110 L55 110 L55 100 C55 100 60 102 65 100 L65 110 L75 110 L75 100 C90 95 105 75 105 55 C105 35 90 10 60 10Z" fill="url(#lobster-gradient)"/>
+            <path d="M20 45 C5 40 0 50 5 60 C10 70 20 65 25 55 C28 48 25 45 20 45Z" fill="url(#lobster-gradient)"/>
+            <path d="M100 45 C115 40 120 50 115 60 C110 70 100 65 95 55 C92 48 95 45 100 45Z" fill="url(#lobster-gradient)"/>
+            <path d="M45 15 Q35 5 30 8" stroke="#ff4d4d" stroke-width="3" stroke-linecap="round"/>
+            <path d="M75 15 Q85 5 90 8" stroke="#ff4d4d" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="45" cy="35" r="6" fill="#050810"/>
+            <circle cx="75" cy="35" r="6" fill="#050810"/>
+            <circle cx="46" cy="34" r="2.5" fill="#00e5cc"/>
+            <circle cx="76" cy="34" r="2.5" fill="#00e5cc"/>
+          </svg>
+        </div>
+        <div class="integration-content">
+          <div class="integration-title">OpenClaw Skill</div>
+          <div class="integration-desc">Create shareable secure notes directly from OpenClaw. Just say "Secure this API key" and it's done.</div>
+        </div>
+      </a>
+
+      <div class="integration-card" style="cursor: default;">
+        <div class="integration-icon obsidian">
+          <svg width="48" height="48" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect fill="#262626" width="512" height="512" rx="100"/>
+            <path d="M359.9 434.3c-2.6 19.1-21.3 34-40 28.9-26.4-7.3-57-18.7-84.7-20.8l-42.3-3.2a27.9 27.9 0 0 1-18-8.4l-73-75a27.9 27.9 0 0 1-5.4-31s45.1-99 46.8-104.2c1.7-5.1 7.8-50 11.4-74.2a28 28 0 0 1 9-16.6l86.2-77.5a28 28 0 0 1 40.6 3.5l72.5 92a29.7 29.7 0 0 1 6.2 18.3c0 17.4 1.5 53.2 11.1 76.3a303 303 0 0 0 35.6 58.5 14 14 0 0 1 1.1 15.7c-6.4 10.8-18.9 31.4-36.7 57.9a143.3 143.3 0 0 0-20.4 59.8Z" fill="#6C31E3"/>
+          </svg>
+        </div>
+        <div class="integration-content">
+          <div class="integration-title">Obsidian Plugin</div>
+          <div class="integration-desc">Securely share notes directly from your Obsidian vault with one click.</div>
+          <span class="integration-coming-soon">Coming Soon</span>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p class="footer-text">
+        FadNote - Share once, then fade away
+        <span class="footer-dot"></span>
+        Created by easyFloyd
+      </p>
+    </footer>
+  </main>
+
+  <script src="/js/theme.js"></script>
+  <script>
+    // Parse URL to get note ID and decryption key
+    const url = new URL(window.location.href);
+    const pathParts = url.pathname.split('/');
+    const noteId = pathParts[pathParts.length - 1];
+    const decryptionKey = url.hash.slice(1);
+
+    const statusEl = document.getElementById('status');
+    const contentWrapperEl = document.getElementById('contentWrapper');
+    const contentEl = document.getElementById('content');
+    const warningBannerEl = document.getElementById('warningBanner');
+    const noteActionsEl = document.getElementById('noteActions');
+    const statusWrapperEl = document.getElementById('statusWrapper');
+    const statusMessageEl = document.getElementById('statusMessage');
+
+    async function loadNote() {
+      try {
+        if (!noteId || noteId === 'n' || noteId === '') {
+          statusEl.className = 'note-status';
+          statusEl.innerHTML = `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--info-text);">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            <span style="color: var(--text-secondary);">No note to display</span>
+          `;
+
+          statusWrapperEl.style.display = 'block';
+          statusMessageEl.className = 'status-message info';
+          statusMessageEl.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            <div>
+              <strong style="display: block; margin-bottom: 0.25rem;">Ready to create a secure note?</strong>
+              <span>Use one of the available methods below to create a shareable one-time secure note.</span>
+            </div>
+          `;
+          return;
+        }
+
+        const response = await fetch(`/n/${noteId}/data`);
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('Note not found or already viewed and faded');
+          }
+          throw new Error('Failed to retrieve note');
+        }
+
+        const encryptedBlob = await response.arrayBuffer();
+
+        if (!decryptionKey) {
+          throw new Error('No decryption key provided. Check the full URL including the # part.');
+        }
+
+        const decryptedContent = await decryptNote(encryptedBlob, decryptionKey);
+
+        contentEl.value = decryptedContent;
+        contentWrapperEl.style.display = 'block';
+        contentWrapperEl.classList.add('has-content');
+        warningBannerEl.classList.remove('hidden');
+        noteActionsEl.style.display = 'flex';
+
+        statusEl.className = 'note-status';
+        statusEl.style.color = 'var(--success-text)';
+        statusEl.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <span>Note decrypted successfully</span>
+        `;
+
+      } catch (error) {
+        const isBurned = error.message.includes('already viewed');
+
+        statusEl.className = 'note-status';
+        statusEl.style.color = isBurned ? 'var(--warning-text)' : 'var(--error-text)';
+        statusEl.innerHTML = isBurned ? `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8.56 2.9A7 7 0 0 1 19 9v4m-2 4H2a3 3 0 0 0 3-3V9a7 7 0 0 1 7-7h9a2 2 0 0 1 2 2v11"/>
+            <path d="M8.56 2.9A7 7 0 0 0 3 9v8"/>
+            <path d="M13 22s0-2 2-5l-2-3c0 3-2 5-2 5"/>
+          </svg>
+          <span>Note has been destroyed</span>
+        ` : `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+          <span>${error.message}</span>
+        `;
+
+        statusWrapperEl.style.display = 'block';
+        statusMessageEl.className = 'status-message ' + (isBurned ? 'warning' : 'error');
+        statusMessageEl.innerHTML = `<span>${isBurned ? '🔥' : '❌'}</span><span>${error.message}</span>`;
+      }
+    }
+
+    async function decryptNote(encryptedBlob, key) {
+      const encrypted = JSON.parse(new TextDecoder().decode(encryptedBlob));
+      const salt = base64ToArrayBuffer(encrypted.salt);
+      const iv = base64ToArrayBuffer(encrypted.iv);
+      const ciphertext = base64ToArrayBuffer(encrypted.ciphertext);
+
+      const encoder = new TextEncoder();
+      const passwordBuffer = encoder.encode(key);
+
+      const baseKey = await crypto.subtle.importKey('raw', passwordBuffer, 'PBKDF2', false, ['deriveKey']);
+
+      const cryptoKey = await crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt: new Uint8Array(salt), iterations: 100000, hash: 'SHA-256' },
+        baseKey,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['decrypt']
+      );
+
+      const plaintextBuffer = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: new Uint8Array(iv) },
+        cryptoKey,
+        ciphertext
+      );
+
+      return new TextDecoder().decode(plaintextBuffer);
+    }
+
+    function base64ToArrayBuffer(base64) {
+      const standardBase64 = base64.replace(/-/g, '+').replace(/_/g, '/');
+      const padding = 4 - (standardBase64.length % 4);
+      const paddedBase64 = padding === 4 || padding === 1 ? standardBase64 : standardBase64 + '='.repeat(padding);
+      const binary = atob(paddedBase64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes.buffer;
+    }
+
+    function copyContent() {
+      const content = contentEl.value;
+      navigator.clipboard.writeText(content).then(() => {
+        const btn = document.getElementById('copyBtn');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 6L9 17l-5-5"/>
+          </svg>
+          Copied!
+        `;
+        btn.classList.remove('btn-secondary');
+        btn.classList.add('btn-primary');
+
+        setTimeout(() => {
+          btn.innerHTML = originalHTML;
+          btn.classList.remove('btn-primary');
+          btn.classList.add('btn-secondary');
+        }, 2000);
+      });
+    }
+
+    loadNote();
+  </script>
+</body>
+</html>

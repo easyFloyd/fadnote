@@ -1,0 +1,108 @@
+import { Hono } from 'hono';
+import { v4 as uuidv4 } from 'uuid';
+import type { Variables } from '../utils/env.js';
+import { isValidId } from '../utils/validation.js';
+import fs from 'fs/promises';
+
+const notes = new Hono<{ Variables: Variables }>();
+
+/**
+ * Notes Routes
+ *
+ * POST /n - Store an encrypted note (generates ID automatically)
+ * GET /n/:id - Serve the decryption HTML page
+ * GET /n/:id/data - Retrieve and delete encrypted note data (one-time read)
+ *
+ * The server NEVER sees the decryption key.
+ * The key is in the URL fragment (#key) which is never sent to the server.
+ */
+
+// Store a new encrypted note
+notes.post('', async (c) => {
+  const storage = c.get('storage')!;
+
+  // Generate a unique ID for the note
+  const id = uuidv4();
+
+  // Check if ID already exists (extremely unlikely with UUID v4)
+  const exists = await storage.exists(id);
+  if (exists) {
+    // In the extremely rare case of collision, try again
+    return c.json({ error: 'ID collision, please try again' }, 409);
+  }
+
+  // Get the encrypted blob from request body
+  const blob = Buffer.from(await c.req.arrayBuffer());
+
+  // Validate blob is not empty
+  if (blob.length === 0) {
+    return c.json({ error: 'Empty note' }, 400);
+  }
+
+  // Get TTL from header (default: 24 hours)
+  const ttlHeader = c.req.header('X-Note-TTL');
+  const ttlSeconds = ttlHeader ? parseInt(ttlHeader, 10) : 86400;
+
+  // Store the encrypted blob
+  await storage.set(id, blob, ttlSeconds);
+
+  return c.json({
+    success: true,
+    id,
+    expiresIn: ttlSeconds
+  }, 201);
+});
+
+// Serve the decryption HTML page
+notes.get('/:id', async (c) => {
+  const id = c.req.param('id');
+
+  // Validate ID format
+  if (!isValidId(id)) {
+    return c.json({ error: 'Invalid ID format' }, 400);
+  }
+
+  // Read and serve the decryption HTML page
+  const html = await fs.readFile('./public/decrypt.html', 'utf-8');
+  return c.html(html);
+});
+
+// Retrieve and delete a note (ONE-TIME READ)
+notes.get('/:id/data', async (c) => {
+  const id = c.req.param('id');
+  const storage = c.get('storage')!;
+
+  // Validate ID format
+  if (!isValidId(id)) {
+    return c.json({ error: 'Invalid ID format' }, 400);
+  }
+
+  // Retrieve the encrypted blob
+  const blob = await storage.get(id);
+
+  if (!blob) {
+    return c.json({
+      error: 'Note not found or already viewed',
+      hint: 'Notes are deleted after first view'
+    }, 404);
+  }
+
+  // CRITICAL: Delete immediately after retrieval (one-time read)
+  await storage.delete(id);
+
+  // Return the encrypted blob
+  // The client will decrypt using the key from URL fragment
+  c.header('Content-Type', 'application/octet-stream');
+  c.header('X-Note-Status', 'deleted');
+
+  // Create a new Uint8Array with fresh ArrayBuffer to satisfy TypeScript
+  const uint8Array = new Uint8Array(blob);
+  return c.newResponse(uint8Array, {
+    headers: {
+      'Content-Type': 'application/octet-stream',
+      'X-Note-Status': 'deleted',
+    },
+  });
+});
+
+export { notes as notesRouter };

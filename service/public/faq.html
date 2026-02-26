@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQ - FadNote</title>
+
+  <link rel="icon" type="image/png" href="/images/favicon-96x96.png" sizes="96x96" />
+  <link rel="shortcut icon" href="/images/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-title" content="FadNote" />
+  <link rel="manifest" href="/images/site.webmanifest" />
+
+  <!-- Critical CSS inlined for fast first paint -->
+  <style>
+    :root {
+      --gray-50: #fafafa; --gray-100: #f5f5f5; --gray-200: #e5e5e5; --gray-300: #d4d4d4;
+      --gray-400: #a3a3a3; --gray-500: #737373; --gray-600: #525252; --gray-700: #404040;
+      --gray-800: #262626; --gray-900: #171717;
+      --brand-blue: #667eea; --brand-blue-dark: #5a6fd6; --brand-blue-light: #7b8eec;
+      --bg-primary: var(--gray-50); --bg-secondary: white; --bg-tertiary: var(--gray-100);
+      --text-primary: var(--gray-900); --text-secondary: var(--gray-600); --text-tertiary: var(--gray-500);
+      --border-color: var(--gray-200); --shadow-color: rgba(0, 0, 0, 0.08);
+    }
+    [data-theme="dark"] {
+      --bg-primary: var(--gray-900); --bg-secondary: var(--gray-800); --bg-tertiary: var(--gray-700);
+      --text-primary: var(--gray-50); --text-secondary: var(--gray-400); --text-tertiary: var(--gray-500);
+      --border-color: var(--gray-700); --shadow-color: rgba(0, 0, 0, 0.3);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; line-height: 1.6;
+    }
+    .header {
+      background: var(--bg-secondary); border-bottom: 1px solid var(--border-color);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .header-content {
+      max-width: 1200px; margin: 0 auto; padding: 1rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .brand { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+    .brand-logo { width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0; object-fit: cover; }
+    .brand-text { font-size: 1.25rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; }
+    .brand-text span { color: var(--brand-blue); }
+    .nav { display: flex; align-items: center; gap: 1.5rem; margin-left: auto; margin-right: 1rem; }
+    .nav-link { font-size: 0.875rem; font-weight: 500; color: var(--text-secondary); text-decoration: none; transition: color 0.2s ease; }
+    .nav-link:hover { color: var(--brand-blue); }
+    .nav-link.active { color: var(--brand-blue); }
+    .github-link { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; color: var(--text-secondary); transition: color 0.2s ease; margin-right: 0.5rem; }
+    .github-link:hover { color: var(--text-primary); }
+    .theme-toggle { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 50px; padding: 0.25rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer; transition: all 0.2s ease; }
+    .theme-toggle:hover { border-color: var(--brand-blue); }
+    .theme-btn { width: 32px; height: 32px; border-radius: 50%; border: none; background: transparent; color: var(--text-tertiary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
+    .theme-btn.active { background: var(--bg-secondary); color: var(--brand-blue); box-shadow: 0 2px 4px var(--shadow-color); }
+    body .main { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; display: flex; flex-direction: row; gap: 2rem; }
+    /* FAQ-specific critical styles */
+    .sidebar { width: 240px; flex-shrink: 0; position: sticky; top: 80px; height: fit-content; }
+    .sidebar-title { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); margin-bottom: 1rem; }
+    .sidebar-nav { display: flex; flex-direction: column; gap: 0.25rem; }
+    .sidebar-link { padding: 0.5rem 0.75rem; border-radius: 8px; font-size: 0.875rem; color: var(--text-secondary); text-decoration: none; transition: all 0.2s ease; }
+    .sidebar-link:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+    .content { flex: 1; min-width: 0; }
+    .page-title { font-size: 2rem; font-weight: 700; margin-bottom: 2rem; color: var(--text-primary); }
+    .faq-section { margin-bottom: 3rem; }
+    .faq-section-title { font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--brand-blue); display: inline-block; }
+    .faq-item { margin-bottom: 1.5rem; padding: 1.25rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 2px 8px var(--shadow-color); }
+    .faq-question { font-weight: 600; color: var(--brand-blue); margin-bottom: 0.75rem; font-size: 1rem; }
+    .faq-answer { color: var(--text-secondary); line-height: 1.7; }
+    .faq-answer a { color: var(--brand-blue); text-decoration: none; }
+    .faq-answer a:hover { text-decoration: underline; }
+    .faq-answer ul, .faq-answer ol { margin-left: 1.25rem; margin-top: 0.5rem; }
+    .faq-answer li { margin-bottom: 0.25rem; }
+    .footer { max-width: 1200px; margin: 3rem auto 0; padding: 2rem 1.5rem; text-align: center; border-top: 1px solid var(--border-color); }
+    .footer-text { font-size: 0.8125rem; color: var(--text-tertiary); display: flex; align-items: center; justify-content: center; gap: 0.75rem; flex-wrap: wrap; }
+    .footer-dot { width: 4px; height: 4px; background: var(--brand-blue); border-radius: 50%; }
+    @media (max-width: 768px) {
+      body .main { flex-direction: column; padding: 1rem; }
+      .sidebar { display: none; }
+      .page-title { font-size: 1.5rem; }
+      .nav { gap: 0.75rem; margin-right: 0.5rem; }
+      .nav-link { font-size: 0.8125rem; }
+    }
+    [data-theme="dark"] .faq-section-title { border-color: var(--brand-blue-light); }
+  </style>
+
+  <!-- Async load shared CSS -->
+  <link rel="preload" href="/css/styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/css/styles.css"></noscript>
+
+  <!-- Prevent flash of wrong theme -->
+  <script>
+    (function() {
+      var theme = localStorage.getItem('fadnote-theme') || 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <a href="/" class="brand">
+        <img src="/images/apple-touch-icon.png" alt="FadNote" class="brand-logo">
+        <span class="brand-text"><span>Fad</span>Note</span>
+      </a>
+      <nav class="nav">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/faq.html" class="nav-link active">FAQ</a>
+      </nav>
+      <a href="https://github.com/easyFloyd/fadnote" target="_blank" rel="noopener" class="github-link" aria-label="GitHub" title="View on GitHub">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+      </a>
+      <div class="theme-toggle" id="themeToggle">
+        <button class="theme-btn active" data-theme="light" aria-label="Light mode">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+        </button>
+        <button class="theme-btn" data-theme="dark" aria-label="Dark mode">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <aside class="sidebar">
+      <div class="sidebar-title">Sections</div>
+      <nav class="sidebar-nav">
+        <a href="#security" class="sidebar-link">Security & Privacy</a>
+        <a href="#self-destruct" class="sidebar-link">Self-Destruction</a>
+        <a href="#usage" class="sidebar-link">Usage</a>
+        <a href="#technical" class="sidebar-link">Technical</a>
+        <a href="#self-hosting" class="sidebar-link">Self-Hosting</a>
+        <a href="#troubleshooting" class="sidebar-link">Troubleshooting</a>
+        <a href="#trust" class="sidebar-link">Trust & Verification</a>
+        <a href="#contact" class="sidebar-link">Contact</a>
+      </nav>
+    </aside>
+
+    <div class="content">
+      <h1 class="page-title">Frequently Asked Questions</h1>
+
+      <section class="faq-section" id="security">
+        <h2 class="faq-section-title">Security & Privacy</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: Can the server read my notes?</div>
+          <div class="faq-answer">A: No. All encryption happens on your device (client-side) using AES-256-GCM before the data ever reaches the server. The server only stores encrypted blobs it cannot decrypt.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: Where is the decryption key stored?</div>
+          <div class="faq-answer">A: The decryption key is embedded in the URL fragment (after the <code>#</code>), which clients never send to the server. Only the person with the full link can decrypt the note.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: Is FadNote really "zero knowledge"?</div>
+          <div class="faq-answer">A: Yes. We use industry-standard AES-256-GCM encryption with PBKDF2 key derivation (100,000 iterations). The server has zero access to your plaintext or decryption keys.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: How do I know you're not lying about the encryption?</div>
+          <div class="faq-answer">A: The entire server code is open source at <a href="https://github.com/easyFloyd/fadnote">https://github.com/easyFloyd/fadnote</a>. You can audit it yourself or self-host.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: Is this really free?</div>
+          <div class="faq-answer">A: Yes. The hosted version is my gift to the privacy-conscious. Self-host if you want. If it saves you time, consider <a href="https://buymeacoffee.com/easyfloyd">buying me a coffee</a>.</div>
+        </div>
+      </section>
+
+      <section class="faq-section" id="self-destruct">
+        <h2 class="faq-section-title">Self-Destruction & Expiration</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: What does "self-destruct" mean?</div>
+          <div class="faq-answer">A: After the first person opens the link and views the note, it's permanently deleted from the server. It cannot be viewed again.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: Can I view the note multiple times?</div>
+          <div class="faq-answer">A: No. By design, notes are one-time read only. Make sure to save the content before closing the page.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: What if nobody opens the link?</div>
+          <div class="faq-answer">A: Notes automatically expire after the TTL (Time-To-Live) you set. Default is 24 hour.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: Is there any backup or recovery?</div>
+          <div class="faq-answer">A: No. Once viewed or expired, the note is gone forever. This is a feature, not a bug.</div>
+        </div>
+      </section>
+
+      <section class="faq-section" id="usage">
+        <h2 class="faq-section-title">Usage</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: What's the maximum note size?</div>
+          <div class="faq-answer">A: 1MB per note. This is sufficient for text, code, API keys, passwords, and small documents.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: Can I send files or attachments?</div>
+          <div class="faq-answer">A: Not currently. FadNote is text-only. For files, encrypt them locally first (e.g., with PGP) and share the encrypted text.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: Can I share the link via Slack/Email/WhatsApp?</div>
+          <div class="faq-answer">A: Yes! The link works anywhere. Just remember: anyone with the link can view the note (once).</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: What happens if I lose the link?</div>
+          <div class="faq-answer">A: The link is the only way to access the note. If you lose it, the note is unrecoverable. Copy it immediately after creation.</div>
+        </div>
+      </section>
+
+      <section class="faq-section" id="technical">
+        <h2 class="faq-section-title">Technical</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: What encryption algorithm does FadNote use?</div>
+          <div class="faq-answer">A: AES-256-GCM with PBKDF2 key derivation (100,000 iterations, SHA-256).</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: Can I use my own FadNote server?</div>
+          <div class="faq-answer">A: Yes! The code is open source. Set your <code>FADNOTE_URL</code> environment variable to point to your self-hosted instance.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: Does FadNote work offline?</div>
+          <div class="faq-answer">A: No. Both the sender and recipient need an internet connection:
+            <ul>
+              <li>Sender: The CLI requires internet to POST the encrypted blob to the server</li>
+              <li>Recipient: Needs internet to fetch and decrypt the note from the server</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="faq-section" id="self-hosting">
+        <h2 class="faq-section-title">Self-Hosting</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: Can I run my own FadNote server?</div>
+          <div class="faq-answer">A: Yes! The code is MIT licensed and available on GitHub. You can deploy via Docker.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: What are the requirements for self-hosting?</div>
+          <div class="faq-answer">
+            A: You have multiple deployment options:
+            <ul>
+              <li><strong>Docker + Redis</strong> (recommended): Runs in a container with Redis for storage</li>
+              <li><strong>Docker + Filesystem</strong>: Simpler setup using local file storage</li>
+              <li><strong>Node.js directly</strong>: Run as a service with node (requires Redis or filesystem setup)</li>
+              See the full self-hosting guide on github for detailed setup instructions.
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="faq-section" id="troubleshooting">
+        <h2 class="faq-section-title">Troubleshooting</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: I get "Note not found or already viewed"</div>
+          <div class="faq-answer">
+            A: Either:
+            <ol>
+              <li>The note was already opened (and deleted)</li>
+              <li>The note expired (past TTL)</li>
+              <li>The link was copied incorrectly</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: The link doesn't work</div>
+          <div class="faq-answer">A: Make sure you copied the entire URL including the part after <code>#</code>. The decryption key is in the URL fragment.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: Can I get a preview before sending?</div>
+          <div class="faq-answer">A: No. For security, you must create the note to get the link. Test with a dummy message first if needed.</div>
+        </div>
+      </section>
+
+      <section class="faq-section" id="trust">
+        <h2 class="faq-section-title">Trust & Verification</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: How do I know the server isn't logging my data?</div>
+          <div class="faq-answer">
+            A:
+            <ol>
+              <li>The code is open source — audit it</li>
+              <li>Self-host if you don't trust anyone</li>
+              <li>Encryption happens before network request (verifiable in client code)</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: Is FadNote audited by security professionals?</div>
+          <div class="faq-answer">A: Not formally yet. The code is open for community review. Use at your own risk for highly sensitive data, or self-host.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: What if the server gets hacked?</div>
+          <div class="faq-answer">A: The server only stores encrypted blobs. Without the decryption key (which only you have in the URL), the data is useless to attackers.</div>
+        </div>
+      </section>
+
+      <section class="faq-section" id="contact">
+        <h2 class="faq-section-title">📧 Contact</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">Q: How can I reach you?</div>
+          <div class="faq-answer">A: Found a bug? Want to say thanks? Just want to chat about cryptography?
+            <ul>
+              <li>📧 Email: <a href="mailto:easyfloyd@fadnote.com">easyfloyd@fadnote.com</a></li>
+              <li>🐙 GitHub: <a href="https://github.com/easyFloyd/fadnote" target="_blank" rel="noopener">@easyFloyd/fadnote</a> — open an issue or start a discussion</li>
+            </ul>
+            I read everything, though I can't promise instant replies. This is a hobby project after all ☕
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p class="footer-text">
+      FadNote - Share once, then fade away
+      <span class="footer-dot"></span>
+      Created by easyFloyd
+    </p>
+  </footer>
+
+  <!-- Shared theme manager -->
+  <script src="/js/theme.js"></script>
+</body>
+</html>
