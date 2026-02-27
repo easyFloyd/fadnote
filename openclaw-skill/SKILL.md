@@ -1,6 +1,6 @@
 ---
 name: fadnote
-version: 1.0.0
+version: 1.0.1
 description: Create secure shareable self-destructing notes
 license: MIT
 metadata:
@@ -26,7 +26,7 @@ Create encrypted, one-time-read notes directly from OpenClaw. The server never s
 | Property | Value |
 |----------|-------|
 | **Name** | fadnote |
-| **Version** | 1.0.0 |
+| **Version** | 1.0.1 |
 | **Author** | easyFloyd |
 | **License** | MIT |
 | **Open Source** | ✅ Yes — https://github.com/easyFloyd/fadnote |
@@ -122,7 +122,7 @@ pbpaste | fadnote  # macOS clipboard
 - **Client-side encryption** — AES-256-GCM with PBKDF2 (100k iterations)
 - **Zero knowledge** — Server receives only encrypted blobs
 - **One-time read** — Note deleted immediately after first fetch
-- **Auto-expire** — Default 1 hour TTL
+- **Auto-expire** — Default 24 hour TTL
 - **🔓 Open Source** — Server code is publicly auditable at https://github.com/easyFloyd/fadnote
 
 The decryption key is embedded in the URL fragment (`#key`) and never sent to the server.

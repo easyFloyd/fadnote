@@ -81,7 +81,7 @@ async function postNote() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/octet-stream',
-        'X-Note-TTL': '3600' // 1 hour
+        'X-Note-TTL': '86400' // 24 hour
       },
       body: encryptedBlob
     });

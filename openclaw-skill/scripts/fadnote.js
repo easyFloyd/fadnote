@@ -47,7 +47,7 @@ async function post(blob) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/octet-stream',
-      'X-Note-TTL': '3600',
+      'X-Note-TTL': '86400',
       'Content-Length': blob.length
     }
   };

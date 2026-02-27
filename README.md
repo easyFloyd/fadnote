@@ -32,7 +32,7 @@ FadNote is a zero-knowledge note sharing service that turns your secrets into se
 
 - 🔐 **Client-side encryption** — Your secret never touches our servers naked
 - 🔥 **One-time read** — First view deletes the note forever
-- ⏰ **Auto-expire** — Notes vaporize after your chosen TTL (default: 1 hour)
+- ⏰ **Auto-expire** — Notes vaporize after your chosen TTL (default: 24 hour)
 - 🕵️ **Zero knowledge** — We can't read your notes even if we wanted to
 - 🔓 **Open-source** — Audit the code, self-host if paranoid
 
