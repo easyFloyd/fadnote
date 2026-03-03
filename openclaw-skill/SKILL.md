@@ -1,6 +1,6 @@
 ---
 name: fadnote
-version: 1.0.1
+version: 1.0.2
 description: Create secure shareable self-destructing notes
 license: MIT
 metadata:
@@ -26,10 +26,10 @@ Create encrypted, one-time-read notes directly from OpenClaw. The server never s
 | Property | Value |
 |----------|-------|
 | **Name** | fadnote |
-| **Version** | 1.0.1 |
+| **Version** | 1.0.2 |
 | **Author** | easyFloyd |
 | **License** | MIT |
-| **Open Source** | ✅ Yes — https://github.com/easyFloyd/fadnote |
+| **Open Source** | Yes — https://github.com/easyFloyd/fadnote |
 | **Runtime** | Node.js 18+ |
 
 ---
@@ -73,16 +73,47 @@ claw: I'll create a secure, self-destructing note for that.
 ### CLI Usage
 
 ```bash
-# Direct text
-fadnote "my secret message"
+  Usage: fadnote [options] [text]
+         echo "text" | fadnote [options]
 
-# From stdin
-echo "secret" | fadnote
-cat file.txt | fadnote
-pbpaste | fadnote  # macOS clipboard
+  Create secure self-destructing notes that can only be viewed once.
+
+  Options:
+    -h, --help          Show this help message and exit
+        --ttl <secs>    Time until note expires (default: 86400 = 24h)
+        --json          Output JSON with noteId, expiresIn, and decryptionUrl
+
+  Environment:
+    FADNOTE_URL         API endpoint (default: https://fadnote.com)
+
+  Examples:
+    # Standard
+    fadnote "My secret message" # direct input
+    echo "My secret" | fadnote # from stdin
+
+    # With options
+    fadnote --ttl 3600 "Expires in 1 hour" # Custom TTL
+    fadnote --json --ttl 7200 "JSON output" # JSON output:
+      # {noteId: string, expiresIn: number, decryptionUrl: string}
+
+    # File and clipboard input
+    cat file.txt | fadnote --ttl 86400 # from stdin with options
+    pbpaste | fadnote  # macOS clipboard
+    xclip -o -selection clipboard | fadnote # from clipboard (Linux with xclip)
+    xsel -b | fadnote # from clipboard (Linux with xsel)
+
 ```
 
-**Output:** Single line with the shareable URL.
+**Single Output:** Single line with the shareable URL.
+
+**JSON Output:**
+```json
+{
+  noteId: string,
+  expiresIn: number,
+  decryptionUrl: string
+}
+```
 
 ---
 
@@ -119,11 +150,11 @@ pbpaste | fadnote  # macOS clipboard
 
 ## Security
 
-- **Client-side encryption** — AES-256-GCM with PBKDF2 (100k iterations)
+- **Client-side encryption** — AES-256-GCM with PBKDF2 (600k iterations)
 - **Zero knowledge** — Server receives only encrypted blobs
 - **One-time read** — Note deleted immediately after first fetch
 - **Auto-expire** — Default 24 hour TTL
-- **🔓 Open Source** — Server code is publicly auditable at https://github.com/easyFloyd/fadnote
+- **Open Source** — Server code is publicly auditable at https://github.com/easyFloyd/fadnote
 
 The decryption key is embedded in the URL fragment (`#key`) and never sent to the server.
 
@@ -135,7 +166,7 @@ The decryption key is embedded in the URL fragment (`#key`) and never sent to th
 openclaw-skill/
 ├── SKILL.md           # This file
 └── scripts/
-    └── fadnote.js     # Main CLI script (~60 lines)
+    └── fadnote.js     # Main CLI script (~160 lines)
 ```
 
 ---
