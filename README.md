@@ -32,7 +32,7 @@ FadNote is a zero-knowledge note sharing service that turns your secrets into se
 
 - 🔐 **Client-side encryption** — Your secret never touches our servers naked
 - 🔥 **One-time read** — First view deletes the note forever
-- ⏰ **Auto-expire** — Notes vaporize after your chosen TTL (default: 1 hour)
+- ⏰ **Auto-expire** — Notes vaporize after your chosen TTL (default: 24 hour)
 - 🕵️ **Zero knowledge** — We can't read your notes even if we wanted to
 - 🔓 **Open-source** — Audit the code, self-host if paranoid
 
@@ -49,7 +49,7 @@ FadNote uses **true zero-knowledge architecture**.
 ### On Your Device
 
 1. **Generate** a random 256-bit encryption key
-2. **Encrypt** your secret using AES-256-GCM + PBKDF2 (100k iterations)
+2. **Encrypt** your secret using AES-256-GCM + PBKDF2 (600k iterations)
 3. **Send** only the encrypted blob to the server
 
 ### On FadNote Server
@@ -69,7 +69,7 @@ FadNote uses **true zero-knowledge architecture**.
 | Aspect | Implementation |
 |--------|---------------|
 | Algorithm | AES-256-GCM |
-| Key Derivation | PBKDF2 with 100,000 iterations |
+| Key Derivation | PBKDF2 with 600,000 iterations |
 | Hash | SHA-256 |
 | IV | 96-bit random per encryption |
 | Salt | 128-bit random per encryption |
@@ -109,26 +109,32 @@ The skill automatically encrypts and returns a shareable link.
 ### Option 3: CLI
 
 Use the standalone script (Node.js 18+, no dependencies):
+📖 [Full CLI Documentation](openclaw-skill/SKILL.md)
 
 ```bash
 # Clone and navigate
  git clone https://github.com/easyFloyd/fadnote.git
- cd fadnote/scripts
+ cd openclaw-skill/scripts
 
 # Pipe text directly
-echo "My secret API key" | node test-fadnote.js
+echo "My secret API key" | node fadnote.js
 
 # Or pass as argument
-node test-fadnote.js "password for the server"
+node fadnote.js "password for the server"
 
 # From a file
-cat credentials.txt | node test-fadnote.js
+cat credentials.txt | node fadnote.js
 
 # From clipboard (macOS)
-pbpaste | node test-fadnote.js
+pbpaste | node fadnote.js
 
 # From clipboard (Linux)
-xclip -o | node test-fadnote.js
+xclip -o | node fadnote.js
+
+# Alternatively you can make it executable
+chmod +x fadnote.js
+./fadnote.js --help
+
 ```
 
 Outputs a single shareable link. Copy, paste, done.
@@ -141,7 +147,7 @@ Roll your own client:
 
 ```bash
 # 1. Encrypt your content (client-side!)
-# See service/src/utils/crypto.ts for the reference implementation
+# See openclaw-skill/scripts/fadnote.js for the reference implementation
 
 # 2. POST the encrypted blob
 curl -X POST https://fadnote.com/n \
@@ -149,11 +155,11 @@ curl -X POST https://fadnote.com/n \
   -H "X-Note-TTL: 3600" \
   --data-binary @encrypted-note.bin
 
-# Response: {"id": "abc123", "expiresIn": 3600}
+# Response: {"success": true,"id": "abc123", "expiresIn": 3600}
 # Share: https://fadnote.com/n/abc123#YOUR_DECRYPTION_KEY
 ```
 
-The encryption uses standard Web Crypto API — you can implement it in any language.
+The encryption uses standard crypto — you can implement it in any language.
 
 ---
 
@@ -169,7 +175,7 @@ cd fadnote/service
 cp .env.example .env
 # Edit .env: STORAGE_TYPE=filesystem (or redis)
 
-docker-compose up -d
+docker-compose up -d # Start with redis
 ```
 
 Runs on http://localhost:3000
@@ -211,7 +217,7 @@ Set `STORAGE_TYPE` in your `.env` file.
 **Verifying the encryption:**
 ```bash
 # Check the decrypt page source — decryption happens entirely in your browser
-curl -s https://fadnote.com/decrypt.html | grep -A5 "decryptNote"
+curl -s https://fadnote.com | grep -A30 "function decryptNote"
 ```
 
 ---
@@ -244,7 +250,7 @@ A: Yes. The hosted version is my gift to the privacy-conscious. Self-host if you
 A: No. We don't have the decryption key. We don't even have the encrypted blob after first read.
 
 **Q: How do I know you're not lying about encryption?**
-A: [Read the code](service/src/utils/crypto.ts). It's 140 lines. The decrypt page is pure client-side JavaScript — no network requests during decryption.
+A: Read the code. [Encryption](openclaw-skill/scripts/fadnote.js) and [decryption](service/public/decrypt.html). It's ~200 lines. The decrypt page is pure client-side JavaScript — no network requests during decryption.
 
 **Q: What if someone intercepts the link?**
 A: They can read the note (once). Share links through trusted channels — FadNote protects against server compromise, not person-in-the-middle during sharing.

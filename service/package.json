@@ -1,6 +1,6 @@
 {
   "name": "fadnote",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Secure, self-destructing note sharing with OpenClaw and Obsidian integrations",
   "main": "dist/index.js",
   "scripts": {
