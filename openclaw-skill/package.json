@@ -1,6 +1,7 @@
 {
   "name": "@openclaw/fadnote",
-  "version": "1.0.1",
+  "version": "1.0.2",
+  "type": "module",
   "description": "OpenClaw skill for secure self-destructing notes",
   "main": "scripts/fadnote.js",
   "bin": {
